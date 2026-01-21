@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal Generator v3.4 | XRPL Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&display=swap');
+
+        :root {
+            --neon-green: #00ff00;
+            --dark-bg: #050505;
+            --panel-bg: #0a0a0a;
+            --border-color: #1a1a1a;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Fira Code', monospace;
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            overscroll-behavior-y: none; 
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
+
+        .hud-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .hud-btn {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .hud-btn:active { transform: scale(0.98); }
+        .hud-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        /* Active State for Resolution Buttons */
+        .res-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Range Slider */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            background: var(--neon-green);
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 0 5px var(--neon-green);
+            border-radius: 50%;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer; background: #333;
+            border-radius: 2px;
+        }
+
+        .canvas-container {
+            background-image: 
+                linear-gradient(45deg, #111 25%, transparent 25%), 
+                linear-gradient(-45deg, #111 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #111 75%), 
+                linear-gradient(-45deg, transparent 75%, #111 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            touch-action: none; 
+        }
+
+        /* Modal Overlay for Saving */
+        #saveModal {
+            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.85);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-6 pb-20 md:pb-6">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6 border-b border-green-900 pb-4 sticky top-0 bg-[#050505] z-30 pt-2">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-radiation text-2xl animate-pulse text-green-500"></i>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-widest leading-none">PORTAL_GEN</h1>
+                <span class="text-[10px] text-green-600 tracking-widest">MOBILE OPTIMIZED v3.4</span>
+            </div>
+        </div>
+        <div class="text-[10px] text-green-700 hidden sm:block border border-green-900 px-2 py-1">
+            SYS.STATUS: ONLINE
+        </div>
+    </header>
+
+    <!-- Main Interface -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 pb-10">
+        
+        <!-- Controls Panel (Left) -->
+        <div class="lg:col-span-4 space-y-4 order-2 lg:order-1">
+            
+            <!-- Upload Section -->
+            <div class="hud-panel p-4 relative overflow-hidden">
+                <div class="absolute top-0 right-0 px-2 py-0.5 text-[9px] bg-green-900 text-black font-bold">STEP 1: SOURCE</div>
+                
+                <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                <label for="imageUpload" class="hud-btn w-full py-6 border-dashed border-2 flex flex-col items-center justify-center gap-2 hover:border-solid touch-manipulation">
+                    <i class="fa-solid fa-image text-2xl"></i>
+                    <span class="text-xs">TAP TO UPLOAD PFP</span>
+                </label>
+                <p class="text-[10px] text-green-600 mt-2 text-center truncate px-2" id="fileName">WAITING FOR DATA...</p>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="hud-panel p-4 relative">
+                <div class="absolute top-0 right-0 px-2 py-0.5 text-[9px] bg-green-900 text-black font-bold">STEP 2: CONFIGURE</div>
+                
+                <div class="space-y-5 mt-2">
+                    
+                    <!-- Style Selector -->
+                    <div>
+                         <label class="block text-[10px] uppercase mb-2 tracking-wider text-green-400">Emitter Configuration</label>
+                         <div class="grid grid-cols-2 gap-2">
+                             <button class="style-btn hud-btn py-2 text-xs active-style bg-green-900/30" data-style="single">
+                                 <i class="fa-regular fa-circle"></i> SINGLE
+                             </button>
+                             <button class="style-btn hud-btn py-2 text-xs" data-style="double">
+                                 <i class="fa-regular fa-circle-dot"></i> DOUBLE
+                             </button>
+                         </div>
+                    </div>
+
+                    <!-- Sliders Grid -->
+                    <div class="grid grid-cols-1 gap-4">
+                        
+                        <!-- Main Ring Width (Context Aware Label) -->
+                        <div>
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <label id="mainWidthLabel">BEAM WIDTH</label>
+                                <span id="widthVal" class="text-green-400">20px</span>
+                            </div>
+                            <input type="range" id="ringWidth" min="5" max="80" value="20" class="w-full">
+                        </div>
+
+                        <!-- Inner Ring Width (Hidden by default) -->
+                        <div id="innerRingControl" class="hidden border-l-2 border-green-900 pl-3">
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <label class="text-green-300">INNER RING WIDTH</label>
+                                <span id="innerWidthVal" class="text-green-400">5px</span>
+                            </div>
+                            <input type="range" id="innerRingWidth" min="1" max="40" value="5" class="w-full">
+                        </div>
+
+                        <!-- Glow Intensity -->
+                        <div>
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <label>RADIATION GLOW</label>
+                                <span id="glowVal" class="text-green-400">30%</span>
+                            </div>
+                            <input type="range" id="glowIntensity" min="0" max="100" value="30" class="w-full">
+                        </div>
+                        
+                         <!-- Zoom -->
+                         <div>
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <label>IMAGE SCALE <span class="text-green-600 text-[9px]">(PINCH TO ZOOM)</span></label>
+                                <span id="zoomVal" class="text-green-400">100%</span>
+                            </div>
+                            <input type="range" id="imageZoom" min="50" max="300" value="100" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- Color Picker -->
+                    <div class="flex items-center justify-between border-t border-green-900/30 pt-4">
+                        <label class="text-[10px] uppercase">Energy Signature</label>
+                        <div class="flex gap-2">
+                            <input type="color" id="ringColor" value="#00ff00" class="h-8 w-8 bg-black border border-green-900 p-0 overflow-hidden rounded-sm">
+                            <button id="resetBtn" class="hud-btn px-3 py-1 text-[10px]">
+                                <i class="fa-solid fa-rotate-left"></i> RESET
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+             <!-- Action Buttons -->
+             <button id="exportBtn" class="hud-btn w-full py-4 text-sm font-bold bg-green-900/20 border-2 shadow-lg shadow-green-900/20 mb-10 lg:mb-0">
+                <i class="fa-solid fa-floppy-disk mr-2"></i> FINALIZE & SAVE
+            </button>
+
+        </div>
+
+        <!-- Preview Panel (Right) -->
+        <div class="lg:col-span-8 flex flex-col h-[50vh] lg:h-auto order-1 lg:order-2">
+            <div class="hud-panel p-1 flex-1 flex flex-col relative h-full">
+                <div class="absolute top-0 left-0 px-2 py-0.5 text-[9px] bg-green-900 text-black font-bold z-10">LIVE PREVIEW (DRAG TO MOVE)</div>
+                
+                <!-- Canvas Container needs to handle events -->
+                <div id="canvasWrapper" class="canvas-container flex-1 flex items-center justify-center overflow-hidden bg-black relative w-full h-full rounded-sm cursor-move">
+                    <!-- The Canvas -->
+                    <canvas id="portalCanvas" class="max-w-[95%] max-h-[95%] shadow-2xl shadow-green-900/50 object-contain touch-none"></canvas>
+                    
+                    <!-- Instructions Overlay (Hidden when image loaded) -->
+                    <div id="placeholderText" class="absolute pointer-events-none text-center opacity-50 px-6">
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-green-500"></i>
+                        <p class="text-xs tracking-widest">AWAITING BIOMETRIC DATA<br>(UPLOAD IMAGE)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-2 text-[10px] text-green-800 text-right font-mono hidden lg:block">
+                RENDER_ENGINE: HTML5_CANVAS // GESTURES: ENABLED
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Save Modal (For Mobile Long-Press) -->
+    <div id="saveModal" class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center p-4">
+        <div class="bg-black border border-green-500 p-4 max-w-sm w-full shadow-2xl relative rounded-lg max-h-[90vh] overflow-y-auto">
+            <button id="closeModal" class="absolute top-2 right-2 text-green-500 hover:text-white p-2 z-20">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <h3 class="text-center text-green-500 font-bold mb-2 text-sm uppercase border-b border-green-900 pb-2">
+                Output Generated
+            </h3>
+            
+            <div class="flex justify-center mb-4 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHElEQVQYlWNgYGBg+M+AAxjhQmCg0fV0M4EMBwB7PQMiu5n5+QAAAABJRU5ErkJggg==')]">
+                <img id="finalImage" class="max-w-full h-auto border border-gray-800 shadow-lg" alt="Portal PFP">
+            </div>
+
+            <div class="text-center space-y-3">
+                
+                <!-- Resolution Selector -->
+                <div class="mb-1">
+                    <label class="text-[10px] text-green-500 uppercase block mb-1 text-left">Output Resolution</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="res-btn hud-btn py-2 text-[10px] active" data-res="1">1K<br><span class="opacity-50 text-[8px]">1024px</span></button>
+                        <button class="res-btn hud-btn py-2 text-[10px]" data-res="2">2K<br><span class="opacity-50 text-[8px]">2048px</span></button>
+                        <button class="res-btn hud-btn py-2 text-[10px]" data-res="4">4K<br><span class="opacity-50 text-[8px]">4096px</span></button>
+                    </div>
+                </div>
+
+                <!-- Filename Input -->
+                <div class="mb-2">
+                    <label class="text-[10px] text-green-500 uppercase block mb-1 text-left">Filename</label>
+                    <div class="flex gap-2 items-center bg-green-900/20 border border-green-500 p-1">
+                        <input type="text" id="fileNameInput" class="bg-transparent text-green-500 text-xs p-1 w-full outline-none font-mono" placeholder="ENTER FILENAME" value="portal_pfp">
+                        <span class="text-green-500 text-xs px-2 opacity-50">.png</span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-white bg-green-900/40 p-2 rounded">
+                    <i class="fa-solid fa-fingerprint mb-1 block text-lg"></i>
+                    <strong>iPhone/Mobile:</strong> Long-Press image above & Save.
+                </p>
+                
+                <a id="directDownloadLink" class="block w-full text-center hud-btn py-3 text-xs font-bold mt-2" download="portal_pfp.png">
+                    FORCE DOWNLOAD FILE
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            image: null,
+            panX: 0, // In base 1024px coordinate space
+            panY: 0, // In base 1024px coordinate space
+            settings: {
+                color: '#00ff00',
+                width: 25, 
+                innerWidth: 6,
+                glow: 30,
+                zoom: 1,
+                style: 'single' 
+            }
+        };
+
+        // --- DOM Elements ---
+        const canvas = document.getElementById('portalCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('canvasWrapper');
+        const fileInput = document.getElementById('imageUpload');
+        const fileNameDisplay = document.getElementById('fileName');
+        const placeholder = document.getElementById('placeholderText');
+        const saveModal = document.getElementById('saveModal');
+        const finalImage = document.getElementById('finalImage');
+        const directLink = document.getElementById('directDownloadLink');
+        const innerControlDiv = document.getElementById('innerRingControl');
+        const mainWidthLabel = document.getElementById('mainWidthLabel');
+        const fileNameInput = document.getElementById('fileNameInput');
+        const resBtns = document.querySelectorAll('.res-btn');
+        
+        // Controls
+        const inputs = {
+            color: document.getElementById('ringColor'),
+            width: document.getElementById('ringWidth'),
+            innerWidth: document.getElementById('innerRingWidth'),
+            glow: document.getElementById('glowIntensity'),
+            zoom: document.getElementById('imageZoom')
+        };
+        
+        const labels = {
+            width: document.getElementById('widthVal'),
+            innerWidth: document.getElementById('innerWidthVal'),
+            glow: document.getElementById('glowVal'),
+            zoom: document.getElementById('zoomVal')
+        };
+
+        const styleBtns = document.querySelectorAll('.style-btn');
+
+        // --- Initialization ---
+        function init() {
+            canvas.width = 1024;
+            canvas.height = 1024;
+            // Set defaults for UI
+            inputs.width.value = state.settings.width;
+            inputs.innerWidth.value = state.settings.innerWidth;
+            labels.width.innerText = state.settings.width + 'px';
+            labels.innerWidth.innerText = state.settings.innerWidth + 'px';
+            
+            draw();
+            setupEventListeners();
+            setupTouchGestures();
+        }
+
+        function setupEventListeners() {
+            fileInput.addEventListener('change', handleImageUpload);
+            
+            inputs.width.addEventListener('input', (e) => {
+                state.settings.width = parseInt(e.target.value);
+                labels.width.innerText = e.target.value + 'px';
+                draw();
+            });
+
+            inputs.innerWidth.addEventListener('input', (e) => {
+                state.settings.innerWidth = parseInt(e.target.value);
+                labels.innerWidth.innerText = e.target.value + 'px';
+                draw();
+            });
+
+            inputs.glow.addEventListener('input', (e) => {
+                state.settings.glow = parseInt(e.target.value);
+                labels.glow.innerText = e.target.value + '%';
+                draw();
+            });
+
+            inputs.zoom.addEventListener('input', (e) => {
+                state.settings.zoom = parseInt(e.target.value) / 100;
+                labels.zoom.innerText = e.target.value + '%';
+                draw();
+            });
+
+            inputs.color.addEventListener('input', (e) => {
+                state.settings.color = e.target.value;
+                draw();
+            });
+
+            styleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const mode = btn.dataset.style;
+                    styleBtns.forEach(b => {
+                        b.classList.remove('bg-green-900/30', 'border-green-500');
+                        b.style.boxShadow = 'none';
+                    });
+                    btn.classList.add('bg-green-900/30', 'border-green-500');
+                    btn.style.boxShadow = '0 0 10px rgba(0,255,0,0.2)';
+                    state.settings.style = mode;
+                    
+                    if (mode === 'double') {
+                        innerControlDiv.classList.remove('hidden');
+                        mainWidthLabel.innerText = "OUTER RING WIDTH";
+                        if(state.settings.width < 15) {
+                            state.settings.width = 25;
+                            inputs.width.value = 25;
+                            labels.width.innerText = "25px";
+                        }
+                    } else {
+                        innerControlDiv.classList.add('hidden');
+                        mainWidthLabel.innerText = "BEAM WIDTH";
+                    }
+                    draw();
+                });
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                state.settings.color = '#00ff00';
+                state.settings.width = 25;
+                state.settings.innerWidth = 6;
+                state.settings.glow = 30;
+                state.settings.zoom = 1;
+                state.settings.style = 'single';
+                state.panX = 0;
+                state.panY = 0;
+                
+                inputs.color.value = '#00ff00';
+                inputs.width.value = 25;
+                inputs.innerWidth.value = 6;
+                inputs.glow.value = 30;
+                inputs.zoom.value = 100;
+                labels.width.innerText = '25px';
+                labels.innerWidth.innerText = '6px';
+                labels.glow.innerText = '30%';
+                labels.zoom.innerText = '100%';
+                
+                styleBtns.forEach(b => b.classList.remove('bg-green-900/30', 'border-green-500'));
+                styleBtns[0].classList.add('bg-green-900/30'); 
+                
+                innerControlDiv.classList.add('hidden');
+                mainWidthLabel.innerText = "BEAM WIDTH";
+
+                draw();
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', showSaveModal);
+            document.getElementById('closeModal').addEventListener('click', () => saveModal.classList.add('hidden'));
+            saveModal.addEventListener('click', (e) => {
+                if (e.target === saveModal) saveModal.classList.add('hidden');
+            });
+            
+            fileNameInput.addEventListener('input', (e) => {
+                const cleanName = e.target.value.replace(/[^a-z0-9_\-]/gi, '_');
+                directLink.download = `${cleanName}.png`;
+            });
+
+            // Resolution Buttons
+            resBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // UI Update
+                    resBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Logic Update
+                    const multiplier = parseInt(btn.dataset.res);
+                    generateHighResOutput(multiplier);
+                });
+            });
+        }
+
+        // --- Touch & Gesture Logic ---
+
+        function setupTouchGestures() {
+            let isDragging = false;
+            let lastX = 0;
+            let lastY = 0;
+            let initialPinchDist = null;
+            let initialZoom = 1;
+
+            wrapper.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                handleDrag(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mouseup', () => isDragging = false);
+
+            wrapper.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastX = e.touches[0].clientX;
+                    lastY = e.touches[0].clientY;
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    initialPinchDist = getDist(e.touches);
+                    initialZoom = state.settings.zoom;
+                }
+            }, { passive: false });
+
+            wrapper.addEventListener('touchmove', (e) => {
+                e.preventDefault(); 
+                if (e.touches.length === 1 && isDragging) {
+                    handleDrag(e.touches[0].clientX, e.touches[0].clientY);
+                } else if (e.touches.length === 2) {
+                    const currentDist = getDist(e.touches);
+                    if (initialPinchDist) {
+                        const scale = currentDist / initialPinchDist;
+                        let newZoom = initialZoom * scale;
+                        newZoom = Math.min(Math.max(newZoom, 0.5), 3.0);
+                        state.settings.zoom = newZoom;
+                        inputs.zoom.value = Math.round(newZoom * 100);
+                        labels.zoom.innerText = Math.round(newZoom * 100) + '%';
+                        draw();
+                    }
+                }
+            }, { passive: false });
+
+            wrapper.addEventListener('touchend', (e) => {
+                isDragging = false;
+                if (e.touches.length < 2) initialPinchDist = null;
+            });
+
+            function handleDrag(clientX, clientY) {
+                const dx = clientX - lastX;
+                const dy = clientY - lastY;
+                lastX = clientX;
+                lastY = clientY;
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                state.panX += dx * scaleX;
+                state.panY += dy * scaleY;
+                draw();
+            }
+
+            function getDist(touches) {
+                return Math.hypot(
+                    touches[0].clientX - touches[1].clientX,
+                    touches[0].clientY - touches[1].clientY
+                );
+            }
+        }
+
+        // --- Core Logic ---
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileNameDisplay.innerText = `LOADED: ${file.name.toUpperCase()}`;
+            placeholder.style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.image = img;
+                    state.panX = 0;
+                    state.panY = 0;
+                    draw();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Updated Render Scene that handles Scaling
+        function renderScene(context, width, height) {
+            const k = width / 1024; // Scale factor relative to base design (1024)
+            
+            context.clearRect(0, 0, width, height);
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            // Scale margins/radius
+            const margin = 80 * k;
+            const maxRadius = (width / 2) - margin;
+
+            // 1. Draw Image
+            if (state.image) {
+                context.save();
+                context.beginPath();
+                context.arc(cx, cy, maxRadius, 0, Math.PI * 2);
+                context.closePath();
+                context.clip();
+
+                const imgScale = Math.max(width / state.image.width, height / state.image.height) * state.settings.zoom;
+                
+                const drawW = state.image.width * imgScale;
+                const drawH = state.image.height * imgScale;
+                
+                // Pan scaling: state.panX is 1024-based. Scale offset by k.
+                const offsetX = state.panX * k;
+                const offsetY = state.panY * k;
+                
+                const drawX = cx - (drawW / 2) + offsetX;
+                const drawY = cy - (drawH / 2) + offsetY;
+
+                context.drawImage(state.image, drawX, drawY, drawW, drawH);
+                context.restore();
+            }
+
+            // 2. Draw Rings (Pass scale K)
+            drawRings(context, cx, cy, maxRadius, k);
+        }
+
+        // Main Draw (Screen Canvas)
+        function draw() {
+            renderScene(ctx, canvas.width, canvas.height);
+        }
+
+        function drawRings(ctx, cx, cy, radius, k) {
+            const { color, width, innerWidth, glow, style } = state.settings;
+            
+            // Scale visual properties
+            const sWidth = width * k;
+            const sInnerWidth = innerWidth * k;
+            const sGlow = glow * k;
+            
+            ctx.lineCap = 'round';
+            ctx.shadowColor = color;
+            ctx.shadowBlur = sGlow;
+
+            if (style === 'double') {
+                // Outer Ring
+                ctx.save();
+                const outerRadius = radius + (sWidth/2) + (5 * k); 
+                ctx.beginPath();
+                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2); 
+                ctx.strokeStyle = color;
+                ctx.lineWidth = sWidth; 
+                ctx.stroke();
+                
+                ctx.strokeStyle = '#fff';
+                ctx.shadowBlur = sGlow / 2;
+                ctx.lineWidth = sWidth * 0.3;
+                ctx.globalAlpha = 0.5;
+                ctx.stroke();
+                ctx.restore();
+
+                // Inner Ring
+                ctx.save();
+                const innerRadius = radius - (15 * k); 
+                ctx.beginPath();
+                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2); 
+                ctx.shadowBlur = sGlow;
+                ctx.shadowColor = color;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = sInnerWidth;
+                ctx.stroke();
+
+                ctx.strokeStyle = '#fff';
+                ctx.shadowBlur = sGlow / 3;
+                ctx.lineWidth = Math.max(1, sInnerWidth * 0.3);
+                ctx.globalAlpha = 0.8;
+                ctx.stroke();
+                ctx.restore();
+
+            } else {
+                // Single Ring
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = sWidth;
+                ctx.stroke();
+
+                ctx.shadowBlur = sGlow / 2;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = sWidth / 3;
+                ctx.globalAlpha = 0.6;
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // Generate High Res Output for Modal
+        function generateHighResOutput(multiplier) {
+            const size = 1024 * multiplier;
+            
+            // Create offscreen canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Render to it
+            renderScene(tempCtx, size, size);
+            
+            // Export
+            const dataUrl = tempCanvas.toDataURL('image/png');
+            finalImage.src = dataUrl;
+            directLink.href = dataUrl;
+        }
+
+        function showSaveModal() {
+            if (!state.image) {
+                const btn = document.getElementById('exportBtn');
+                btn.classList.add('bg-red-900/50');
+                setTimeout(() => btn.classList.remove('bg-red-900/50'), 300);
+            }
+            
+            // Default generate 1K
+            generateHighResOutput(1);
+            
+            // Reset active button state
+            resBtns.forEach(b => b.classList.remove('active'));
+            resBtns[0].classList.add('active'); // 1K is first
+            
+            // Name gen
+            const timestamp = Math.floor(Date.now() / 1000).toString().slice(-5);
+            const uniqueName = `portal_XRP_${timestamp}`;
+            
+            fileNameInput.value = uniqueName;
+            directLink.download = `${uniqueName}.png`;
+            
+            saveModal.classList.remove('hidden');
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
+
+
