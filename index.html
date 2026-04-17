@@ -2959,15 +2959,21 @@
         showXrpmanLine(msg);
     }
 
+    // Flag: has the user interacted with xrpman (via button click or reaction)?
+    // If so, the boot sequence should stop gracefully and let normal flow take over.
+    let _xrpmanBootInterrupted = false;
+
     function startXrpmanAssistant() {
         _xrpmanPool = shuffleArray(buildXrpmanPool());
         _xrpmanIndex = 0;
+        _xrpmanBootInterrupted = false;
 
-        // Helper: wait until current typewriter finishes before resolving
+        // Helper: wait until current typewriter finishes before resolving.
+        // Also resolves early if the boot gets interrupted by a user reaction.
         function waitForTypingDone() {
             return new Promise(resolve => {
                 const check = setInterval(() => {
-                    if (!_xrpmanTypeTimer) {
+                    if (!_xrpmanTypeTimer || _xrpmanBootInterrupted) {
                         clearInterval(check);
                         resolve();
                     }
@@ -2975,38 +2981,42 @@
             });
         }
 
-        // Dramatic two-line boot sequence — Stone sees this every time he opens the app.
-        // Line 1 types out, pauses on screen, then Line 2 types out. After that,
-        // the normal rotation takes over.
+        // Dramatic two-line boot sequence. Checks interruption flag between steps
+        // so a user tap (which fires a reaction) cancels the rest of the script and
+        // hands control to the normal auto-rotate + reaction system.
         (async () => {
             showXrpmanLine('Look what making good choices got you!');
             await waitForTypingDone();
-            // Let Line 1 sit on screen so Stone can read it
+            if (_xrpmanBootInterrupted) { ensureRotationRunning(); return; }
             await new Promise(r => setTimeout(r, 2200));
+            if (_xrpmanBootInterrupted) { ensureRotationRunning(); return; }
             showXrpmanLine("What's it feel like being best friends with a superhero?");
             await waitForTypingDone();
-            // Let Line 2 sit a moment before rotation kicks in
+            if (_xrpmanBootInterrupted) { ensureRotationRunning(); return; }
             await new Promise(r => setTimeout(r, 1500));
-            // Now start the auto-rotation on the normal pool
-            if (_xrpmanTimer) clearInterval(_xrpmanTimer);
-            _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+            ensureRotationRunning();
         })();
 
-        // Wire the "next" button to skip to next message
+        // Wire the "next" button to skip to next message AND mark boot as interrupted.
         const nextBtn = document.getElementById('xrpmanNext');
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
+                _xrpmanBootInterrupted = true;
                 nextXrpmanMessage();
-                if (_xrpmanTimer) clearInterval(_xrpmanTimer);
-                _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+                ensureRotationRunning();
             });
         }
         // Periodic greeting refresh — every 10 minutes, inject a greeting
         setInterval(() => {
             showXrpmanLine(getGreetingForTimeOfDay());
-            if (_xrpmanTimer) clearInterval(_xrpmanTimer);
-            _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+            ensureRotationRunning();
         }, 600000);
+    }
+
+    // Kick the auto-rotate timer. Safe to call multiple times — always resets cleanly.
+    function ensureRotationRunning() {
+        if (_xrpmanTimer) clearInterval(_xrpmanTimer);
+        _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
     }
 
     // Expose a reactive helper so main app code can ping xrpman on user actions.
@@ -3056,11 +3066,13 @@
     window._xrpmanReact = function(key) {
         const pool = XRPMAN_REACTIONS[key];
         if (!pool || !pool.length) return;
+        // Any user-triggered reaction interrupts the boot sequence if it's still running.
+        // This prevents the second boot line from stepping on the reaction.
+        _xrpmanBootInterrupted = true;
         const msg = pool[Math.floor(Math.random() * pool.length)];
         showXrpmanLine(msg);
         // Reset auto-rotate timer so the reaction sits on screen a full 10s
-        if (_xrpmanTimer) clearInterval(_xrpmanTimer);
-        _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+        ensureRotationRunning();
     };
 
     // ── Toast System ──
