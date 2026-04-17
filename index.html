@@ -569,8 +569,8 @@
                     <button id="ringCountUp" class="hud-btn w-12 h-12 text-2xl font-bold flex items-center justify-center" style="touch-action:manipulation;">+</button>
                     <span class="text-[10px] text-green-800">MAX 4</span>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><div class="flex justify-between text-[10px] mb-1"><span>BEAM WIDTH</span><span id="widthVal" class="text-green-400">20px</span></div><input type="range" id="ringWidth" min="1" max="80" value="20" class="w-full"></div>
+                <div class="grid grid-cols-1 gap-2">
+                    <div id="ringWidthContainer"></div>
                     <div><div class="flex justify-between text-[10px] mb-1"><span>SPACING</span><span id="spacingVal" class="text-green-400">20px</span></div><input type="range" id="ringSpacing" min="5" max="60" value="20" class="w-full"></div>
                 </div>
             </div>
@@ -709,10 +709,12 @@
                             <button id="ringCountUpD" class="hud-btn w-8 h-8 text-lg font-bold flex items-center justify-center">+</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><div class="flex justify-between text-[10px] mb-1"><label>BEAM WIDTH</label><span id="widthValD" class="text-green-400">20px</span></div><input type="range" id="ringWidthD" min="1" max="80" value="20" class="w-full"></div>
-                        <div><div class="flex justify-between text-[10px] mb-1"><label>SPACING</label><span id="spacingValD" class="text-green-400">20px</span></div><input type="range" id="ringSpacingD" min="5" max="60" value="20" class="w-full"></div>
-                        <div><div class="flex justify-between text-[10px] mb-1"><label>GLOW</label><span id="glowValD" class="text-green-400">30%</span></div><input type="range" id="glowIntensityD" min="0" max="100" value="30" class="w-full"></div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <div id="ringWidthContainerD"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><div class="flex justify-between text-[10px] mb-1"><label>SPACING</label><span id="spacingValD" class="text-green-400">20px</span></div><input type="range" id="ringSpacingD" min="5" max="60" value="20" class="w-full"></div>
+                            <div><div class="flex justify-between text-[10px] mb-1"><label>GLOW</label><span id="glowValD" class="text-green-400">30%</span></div><input type="range" id="glowIntensityD" min="0" max="100" value="30" class="w-full"></div>
+                        </div>
                         <div><div class="flex justify-between text-[10px] mb-1"><label>ZOOM</label><span id="zoomValD" class="text-green-400">100%</span></div><input type="range" id="imageZoomD" min="50" max="300" value="100" class="w-full"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-3 border-t border-green-900/30 pt-3">
@@ -854,7 +856,8 @@
             settings: {
                 color:      '#00ff00',
                 color2:     '#00ff00',
-                width:      20,
+                width:      20,        // legacy / fallback
+                ringWidths: [20,20,20,20], // per-ring widths, index 0 = outermost
                 glow:       30,
                 zoom:       1,
                 ringCount:  1,
@@ -863,7 +866,7 @@
                 bgMode:     'transparent',
                 bgColor:    '#000000',
                 xmemeRing:  false,
-                xmemeSize:  1, // 0.6 to 2.5 — smaller = more repeats, bigger = fewer but bolder
+                xmemeSize:  1,
             }
         };
 
@@ -920,13 +923,11 @@
             // Also init desktop canvas
             const dc = document.getElementById('portalCanvasD');
             if (dc) { dc.width = 1024; dc.height = 1024; dc._init = true; }
-            inputs.width.value   = state.settings.width;
-            inputs.spacing.value = state.settings.spacing;
-            labels.width.innerText   = state.settings.width + 'px';
-            labels.spacing.innerText = state.settings.spacing + 'px';
+            if (inputs.spacing) inputs.spacing.value = state.settings.spacing;
+            if (labels.spacing) labels.spacing.innerText = state.settings.spacing + 'px';
             setupTabs();
+            setupEventListeners();  // build sliders BEFORE first draw
             draw();
-            setupEventListeners();
             setupTouchGestures();
             requestAnimationFrame(animLoop);
         }
@@ -986,17 +987,68 @@
                 });
             }
 
-            wireSlider('ringWidth',    'widthVal',   'width',   parseInt, v => v+'px');
             wireSlider('ringSpacing',  'spacingVal', 'spacing', parseInt, v => v+'px');
             wireSlider('glowIntensity','glowVal',    'glow',    parseInt, v => v+'%');
             wireSlider('imageZoom',    'zoomVal',    'zoom',    v => parseInt(v)/100, v => v+'%');
             wireSlider('xmemeSize',    'xmemeSizeVal','xmemeSize', v => parseInt(v)/100, v => (parseInt(v)/100).toFixed(1)+'x');
             // Desktop mirrors
-            wireSlider('ringWidthD',    'widthValD',   'width',   parseInt, v => v+'px');
             wireSlider('ringSpacingD',  'spacingValD', 'spacing', parseInt, v => v+'px');
             wireSlider('glowIntensityD','glowValD',    'glow',    parseInt, v => v+'%');
             wireSlider('imageZoomD',    'zoomValD',    'zoom',    v => parseInt(v)/100, v => v+'%');
             wireSlider('xmemeSizeD',    'xmemeSizeValD','xmemeSize', v => parseInt(v)/100, v => (parseInt(v)/100).toFixed(1)+'x');
+
+            // Build per-ring width sliders dynamically
+            function rebuildRingWidthSliders() {
+                const count = state.settings.ringCount;
+                // Ensure array is long enough
+                while (state.settings.ringWidths.length < count) state.settings.ringWidths.push(20);
+
+                ['ringWidthContainer','ringWidthContainerD'].forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    const isDesktop = containerId.endsWith('D');
+                    let html = '';
+                    if (count === 1) {
+                        html = `
+                            <div class="flex justify-between text-[10px] mb-1">
+                                <span>BEAM WIDTH</span>
+                                <span class="text-green-400 rw-val" data-idx="0">${state.settings.ringWidths[0]}px</span>
+                            </div>
+                            <input type="range" class="w-full rw-slider" data-idx="0" min="1" max="80" value="${state.settings.ringWidths[0]}">
+                        `;
+                    } else {
+                        for (let i = 0; i < count; i++) {
+                            html += `
+                                <div class="${i>0 ? 'mt-2' : ''}">
+                                    <div class="flex justify-between text-[10px] mb-1">
+                                        <span class="${i===0 ? 'text-green-300' : 'text-green-500'}">RING ${i+1}${i===0 ? ' (OUTER)' : i===count-1 ? ' (INNER)' : ''}</span>
+                                        <span class="text-green-400 rw-val" data-idx="${i}">${state.settings.ringWidths[i]}px</span>
+                                    </div>
+                                    <input type="range" class="w-full rw-slider" data-idx="${i}" min="1" max="80" value="${state.settings.ringWidths[i]}">
+                                </div>
+                            `;
+                        }
+                    }
+                    container.innerHTML = html;
+                });
+
+                // Wire the newly-created sliders on both mobile and desktop
+                document.querySelectorAll('.rw-slider').forEach(slider => {
+                    slider.addEventListener('input', e => {
+                        const idx = parseInt(e.target.dataset.idx);
+                        const val = parseInt(e.target.value);
+                        state.settings.ringWidths[idx] = val;
+                        // Update all matching value labels (mobile + desktop)
+                        document.querySelectorAll(`.rw-val[data-idx="${idx}"]`).forEach(lb => lb.innerText = val+'px');
+                        // Sync sliders across mobile/desktop
+                        document.querySelectorAll(`.rw-slider[data-idx="${idx}"]`).forEach(s => { if (s !== e.target) s.value = val; });
+                        draw();
+                    });
+                });
+            }
+            rebuildRingWidthSliders();
+            // Expose for ring count change
+            window._rebuildRingWidthSliders = rebuildRingWidthSliders;
 
             // Color pickers
             ['ringColor','ringColor2','bgColor'].forEach(id => {
@@ -1012,6 +1064,7 @@
                 const n = Math.min(4, Math.max(1, state.settings.ringCount + delta));
                 state.settings.ringCount = n;
                 ['ringCountVal','ringCountValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = n; });
+                if (window._rebuildRingWidthSliders) window._rebuildRingWidthSliders();
                 draw();
             }
             ['ringCountDown','ringCountDownD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', () => changeRingCount(-1)); });
@@ -1065,9 +1118,8 @@
 
             // Reset
             function doReset() {
-                state.settings = { color:'#00ff00', color2:'#00ff00', width:20, glow:30, zoom:1, ringCount:1, spacing:20, glowMode:'steady', bgMode:'transparent', bgColor:'#000000', xmemeRing:false, xmemeSize:1 };
+                state.settings = { color:'#00ff00', color2:'#00ff00', width:20, ringWidths:[20,20,20,20], glow:30, zoom:1, ringCount:1, spacing:20, glowMode:'steady', bgMode:'transparent', bgColor:'#000000', xmemeRing:false, xmemeSize:1 };
                 state.panX = 0; state.panY = 0;
-                ['ringWidth','ringWidthD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 20; });
                 ['ringSpacing','ringSpacingD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 20; });
                 ['glowIntensity','glowIntensityD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 30; });
                 ['imageZoom','imageZoomD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 100; });
@@ -1075,7 +1127,6 @@
                 ['ringColor','ringColorD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '#00ff00'; });
                 ['ringColor2','ringColor2D'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '#00ff00'; });
                 ['bgColor','bgColorD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '#000000'; });
-                ['widthVal','widthValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '20px'; });
                 ['spacingVal','spacingValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '20px'; });
                 ['glowVal','glowValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '30%'; });
                 ['zoomVal','zoomValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '100%'; });
@@ -1087,6 +1138,7 @@
                 if (q) q.innerText = 'OFF';
                 const qBtn = document.getElementById('xmemeQuickToggle');
                 if (qBtn) { qBtn.style.background='linear-gradient(135deg, rgba(255,200,60,0.08), rgba(0,255,0,0.06))'; qBtn.style.boxShadow='none'; qBtn.style.color='#ffcc44'; }
+                if (window._rebuildRingWidthSliders) window._rebuildRingWidthSliders();
                 draw();
             }
             ['resetBtn','resetBtnD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', doReset); });
@@ -1145,8 +1197,13 @@
                     const p = presets[activePresetSlot];
                     if (!p) { showToast('SLOT EMPTY', `Slot ${activePresetSlot+1} is empty.`); return; }
                     Object.assign(state.settings, p);
+                    // Ensure ringWidths is a proper array (backwards compat)
+                    if (!Array.isArray(state.settings.ringWidths)) {
+                        state.settings.ringWidths = [p.width || 20, 20, 20, 20];
+                    } else {
+                        state.settings.ringWidths = state.settings.ringWidths.slice();
+                    }
                     // Sync all UI
-                    ['ringWidth','ringWidthD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=p.width; });
                     ['ringSpacing','ringSpacingD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=p.spacing; });
                     ['glowIntensity','glowIntensityD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=p.glow; });
                     ['imageZoom','imageZoomD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=Math.round(p.zoom*100); });
@@ -1154,6 +1211,7 @@
                     ['ringColor2','ringColor2D'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=p.color2; });
                     ['ringCountVal','ringCountValD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.innerText=p.ringCount; });
                     setGlowMode(p.glowMode); setBgMode(p.bgMode);
+                    if (window._rebuildRingWidthSliders) window._rebuildRingWidthSliders();
                     draw();
                     showToast('PRESET LOADED', `Slot ${activePresetSlot+1} restored.`);
                 });
@@ -1235,13 +1293,32 @@
             const margin = 80 * k;
             const baseRadius = (width / 2) - margin;
 
-            const { ringCount, width: rw, spacing, color, color2,
+            const { ringCount, spacing, color, color2,
                     bgMode, bgColor, xmemeRing } = state.settings;
-            const sWidth   = rw * k;
+            const ringWidths = state.settings.ringWidths || [state.settings.width];
             const sSpacing = spacing * k;
             const sGlow    = getEffectiveGlow() * k;
-            const outerRadius = baseRadius + (ringCount - 1) * sSpacing;
-            const clipRadius  = outerRadius + sWidth + sGlow + (xmemeRing ? 42 * k : 8 * k);
+
+            // Calculate each ring's radius working from inside out.
+            // Ring index: 0 = outermost. Inner ring sits on baseRadius edge.
+            // Each ring centered on its own radius, stroke width adds/subtracts half.
+            // Simple approach: outermost ring at baseRadius + spacing*(count-1) + sum of prior half-widths
+            // Actually simpler: stack them — each ring at baseRadius + i*spacing, but offset by widths.
+            // Use this: innermost ring i=count-1 sits at baseRadius. Each outer ring is spacing+halfWidth above the previous edge.
+            const radii = [];
+            let currentRadius = baseRadius; // innermost ring centerline
+            for (let i = ringCount - 1; i >= 0; i--) {
+                radii[i] = currentRadius;
+                // Move outward by this ring's half-width + spacing + next ring's half-width
+                if (i > 0) {
+                    const thisHalf = (ringWidths[i] || 20) * k * 0.5;
+                    const nextHalf = (ringWidths[i-1] || 20) * k * 0.5;
+                    currentRadius += thisHalf + sSpacing + nextHalf;
+                }
+            }
+            const outerRadius = radii[0];
+            const outerWidth  = (ringWidths[0] || 20) * k;
+            const clipRadius  = outerRadius + outerWidth + sGlow + (xmemeRing ? 42 * k : 8 * k);
 
             context.save();
             context.beginPath();
@@ -1277,22 +1354,23 @@
                 context.restore();
             }
 
-            // Rings — outermost first
+            // Rings — iterate outer to inner using precomputed radii and per-ring widths
             context.lineCap = 'round';
             for (let i = 0; i < ringCount; i++) {
-                const ringRadius = outerRadius - i * sSpacing;
+                const ringRadius = radii[i];
+                const rSWidth    = (ringWidths[i] || 20) * k;
                 const ringColor  = i % 2 === 0 ? color : color2;
                 context.save();
                 context.beginPath();
                 context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
                 context.strokeStyle = ringColor;
-                context.lineWidth   = sWidth;
+                context.lineWidth   = rSWidth;
                 context.shadowColor = ringColor;
                 context.shadowBlur  = sGlow;
                 context.stroke();
                 // white core highlight
                 context.strokeStyle  = 'rgba(255,255,255,0.45)';
-                context.lineWidth    = sWidth * 0.25;
+                context.lineWidth    = Math.max(0.5, rSWidth * 0.25);
                 context.shadowBlur   = sGlow * 0.4;
                 context.globalAlpha  = 0.5;
                 context.stroke();
@@ -1302,7 +1380,7 @@
             // XM∑M∑ text ring — tightly packed, sigmas drawn smaller, user-adjustable size
             if (xmemeRing) {
                 const xmemeScale = state.settings.xmemeSize || 1;
-                const textRadius = outerRadius + sWidth * 0.5 + (18 * k) + (xmemeScale > 1 ? (xmemeScale - 1) * 10 * k : 0);
+                const textRadius = outerRadius + outerWidth * 0.5 + (18 * k) + (xmemeScale > 1 ? (xmemeScale - 1) * 10 * k : 0);
                 const circumference = 2 * Math.PI * textRadius;
                 const fontSize   = Math.max(8, 11 * k * xmemeScale);
                 const sigmaSize  = fontSize * 0.72; // sigmas slightly smaller
