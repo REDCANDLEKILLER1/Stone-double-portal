@@ -693,10 +693,12 @@
             const maxRadius = (width / 2) - margin;
 
             // Clip everything to a circle — pixels outside stay transparent in PNG export
+            // Extra padding = glow radius so shadowBlur isn't clipped
             const sWidth = state.settings.width * k;
+            const glowPad = state.settings.glow * k;
             const clipRadius = state.settings.style === 'double'
-                ? maxRadius + sWidth + (10 * k)
-                : maxRadius + sWidth + (6 * k);
+                ? maxRadius + sWidth + (10 * k) + glowPad
+                : maxRadius + sWidth + (6 * k) + glowPad;
             context.save();
             context.beginPath();
             context.arc(cx, cy, clipRadius, 0, Math.PI * 2);
