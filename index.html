@@ -732,9 +732,10 @@
                 <div class="flex justify-between text-[10px] mb-1"><span>INTENSITY</span><span id="glowVal" class="text-green-400">30%</span></div>
                 <input type="range" id="glowIntensity" min="0" max="100" value="30" class="w-full mb-4">
                 <div class="text-[9px] text-green-700 uppercase tracking-wider mb-2">Glow Mode</div>
-                <div class="grid grid-cols-4 gap-1">
+                <div class="grid grid-cols-5 gap-1">
                     <button class="glow-btn hud-btn py-2 text-[9px] bg-green-900/30" data-glow="steady" style="touch-action:manipulation;">STEADY</button>
                     <button class="glow-btn hud-btn py-2 text-[9px]" data-glow="pulse" style="touch-action:manipulation;">PULSE</button>
+                    <button class="glow-btn hud-btn py-2 text-[9px]" data-glow="wave" style="touch-action:manipulation;">WAVE</button>
                     <button class="glow-btn hud-btn py-2 text-[9px]" data-glow="flicker" style="touch-action:manipulation;">FLICKER</button>
                     <button class="glow-btn hud-btn py-2 text-[9px]" data-glow="none" style="touch-action:manipulation;">NONE</button>
                 </div>
@@ -861,9 +862,10 @@
                     </div>
                     <div class="border-t border-green-900/30 pt-3">
                         <label class="block text-[10px] uppercase mb-1 text-green-400">Glow Mode</label>
-                        <div class="grid grid-cols-4 gap-1">
+                        <div class="grid grid-cols-5 gap-1">
                             <button class="glow-btn-d hud-btn py-1.5 text-[9px] bg-green-900/30" data-glow="steady">STEADY</button>
                             <button class="glow-btn-d hud-btn py-1.5 text-[9px]" data-glow="pulse">PULSE</button>
+                            <button class="glow-btn-d hud-btn py-1.5 text-[9px]" data-glow="wave">WAVE</button>
                             <button class="glow-btn-d hud-btn py-1.5 text-[9px]" data-glow="flicker">FLICKER</button>
                             <button class="glow-btn-d hud-btn py-1.5 text-[9px]" data-glow="none">NONE</button>
                         </div>
@@ -1206,9 +1208,10 @@
                         <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
                             <div class="text-green-300 font-bold mb-2 text-base">GLOW MODES</div>
                             <div class="space-y-1.5 text-green-500 text-sm leading-relaxed">
-                                <div><span class="text-green-400 font-bold">STEADY</span> — constant glow</div>
-                                <div><span class="text-green-400 font-bold">PULSE</span> — breathing effect</div>
-                                <div><span class="text-green-400 font-bold">FLICKER</span> — old neon sign feel</div>
+                                <div><span class="text-green-400 font-bold">STEADY</span> — smooth clean rings</div>
+                                <div><span class="text-green-400 font-bold">PULSE</span> — radar halos radiating out</div>
+                                <div><span class="text-green-400 font-bold">WAVE</span> — sinusoidal wave rings</div>
+                                <div><span class="text-green-400 font-bold">FLICKER</span> — broken neon segments</div>
                                 <div><span class="text-green-400 font-bold">NONE</span> — flat, no glow</div>
                             </div>
                         </div>
@@ -1530,28 +1533,16 @@
             requestAnimationFrame(animLoop);
         }
 
-        // Animation loop for pulse/flicker modes — throttled to ~24fps
-        let _lastAnimFrame = 0;
-        function animLoop(ts) {
-            requestAnimationFrame(animLoop);
-            if (state.settings.glowMode === 'steady' || state.settings.glowMode === 'none') return;
-            if (ts - _lastAnimFrame < 42) return; // ~24fps cap
-            _lastAnimFrame = ts;
-            state.glowPhase += 0.05;
-            draw();
-        }
+        // Animation loop — no longer used for glow modes (those are now static patterns).
+        // Kept as a no-op in case anything still references requestAnimationFrame init.
+        function animLoop(ts) { /* intentionally empty */ }
 
+        // Glow intensity is now a static value. Visual differences between modes
+        // come from how the ring is actually rendered (halos, segments, waves),
+        // not from animating the glow strength — which was invisible in exports.
         function getEffectiveGlow() {
-            const base = state.settings.glow;
-            if (state.settings.glowMode === 'none')    return 0;
-            if (state.settings.glowMode === 'steady')  return base;
-            if (state.settings.glowMode === 'pulse')
-                return base * (0.4 + 0.6 * (0.5 + 0.5 * Math.sin(state.glowPhase)));
-            if (state.settings.glowMode === 'flicker') {
-                const flick = Math.random() > 0.1 ? 1 : (0.2 + Math.random() * 0.5);
-                return base * flick * (0.7 + 0.3 * Math.sin(state.glowPhase * 2.3));
-            }
-            return base;
+            if (state.settings.glowMode === 'none') return 0;
+            return state.settings.glow;
         }
 
         // --- Event Listeners ---
@@ -2156,6 +2147,7 @@
             // Skip any ring that the XM∑M∑ text is positioned on (so text isn't hidden behind it)
             const hideRingIdx = (xmemeRing && typeof state.settings.xmemePos === 'number') ? state.settings.xmemePos : -1;
             const ringColors = state.settings.ringColors || [];
+            const glowMode = state.settings.glowMode || 'steady';
             context.lineCap = 'round';
             for (let i = 0; i < ringCount; i++) {
                 if (i === hideRingIdx) continue; // XM∑M∑ takes this ring's spot
@@ -2164,19 +2156,104 @@
                 // Per-ring color wins if set; else fall back to alternating color/color2
                 const ringColor  = ringColors[i] || (i % 2 === 0 ? color : color2);
                 context.save();
-                context.beginPath();
-                context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
-                context.strokeStyle = ringColor;
-                context.lineWidth   = rSWidth;
-                context.shadowColor = ringColor;
-                context.shadowBlur  = sGlow;
-                context.stroke();
-                // white core highlight
-                context.strokeStyle  = 'rgba(255,255,255,0.45)';
-                context.lineWidth    = Math.max(0.5, rSWidth * 0.25);
-                context.shadowBlur   = sGlow * 0.4;
-                context.globalAlpha  = 0.5;
-                context.stroke();
+
+                if (glowMode === 'pulse') {
+                    // PULSE — concentric halo rings radiating outward from the ring.
+                    // 3 ghost rings at increasing radius with fading alpha — reads as
+                    // a frozen radar pulse, visually distinct from a plain ring.
+                    for (let h = 3; h >= 1; h--) {
+                        const hRadius = ringRadius + h * rSWidth * 0.55;
+                        const hAlpha  = 0.15 + 0.12 * (3 - h);
+                        context.beginPath();
+                        context.arc(cx, cy, hRadius, 0, Math.PI * 2);
+                        context.strokeStyle = ringColor;
+                        context.globalAlpha = hAlpha;
+                        context.lineWidth   = rSWidth * (0.35 + h * 0.1);
+                        context.shadowColor = ringColor;
+                        context.shadowBlur  = sGlow * 0.7;
+                        context.stroke();
+                    }
+                    // Main ring on top
+                    context.globalAlpha = 1;
+                    context.beginPath();
+                    context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+                    context.strokeStyle = ringColor;
+                    context.lineWidth   = rSWidth;
+                    context.shadowColor = ringColor;
+                    context.shadowBlur  = sGlow;
+                    context.stroke();
+
+                } else if (glowMode === 'wave') {
+                    // WAVE — ring drawn as a sinusoidal wave wrapping the circle.
+                    // Amplitude scales with ring width, frequency is fixed at 12 crests.
+                    const waveCrests = 12 + i * 2; // inner rings get a few more crests
+                    const amp = rSWidth * 0.55;
+                    context.beginPath();
+                    const steps = 360;
+                    for (let s = 0; s <= steps; s++) {
+                        const t   = (s / steps) * Math.PI * 2;
+                        const wav = Math.sin(t * waveCrests) * amp;
+                        const r   = ringRadius + wav;
+                        const px  = cx + Math.cos(t) * r;
+                        const py  = cy + Math.sin(t) * r;
+                        if (s === 0) context.moveTo(px, py);
+                        else         context.lineTo(px, py);
+                    }
+                    context.closePath();
+                    context.strokeStyle = ringColor;
+                    context.lineWidth   = rSWidth * 0.5;
+                    context.shadowColor = ringColor;
+                    context.shadowBlur  = sGlow;
+                    context.stroke();
+
+                } else if (glowMode === 'flicker') {
+                    // FLICKER — ring broken into jagged electric segments with gaps.
+                    // Each segment has random alpha so it looks like a damaged neon sign.
+                    // Use a seeded-ish random based on ring index so pattern is stable.
+                    const segCount = 28 + i * 4;
+                    for (let s = 0; s < segCount; s++) {
+                        // Deterministic pseudo-random: keeps the pattern consistent per render
+                        const seed = Math.sin((s + 1) * 12.9898 + (i + 1) * 78.233) * 43758.5453;
+                        const rnd  = seed - Math.floor(seed);
+                        if (rnd < 0.12) continue; // gap — dead segment
+                        const segStart = (s / segCount) * Math.PI * 2;
+                        const segEnd   = ((s + 0.82) / segCount) * Math.PI * 2;
+                        const segAlpha = 0.35 + rnd * 0.65;
+                        // Slight radial jitter for electric jaggedness
+                        const jitter   = (rnd - 0.5) * rSWidth * 0.4;
+                        context.beginPath();
+                        context.arc(cx, cy, ringRadius + jitter, segStart, segEnd);
+                        context.strokeStyle = ringColor;
+                        context.globalAlpha = segAlpha;
+                        context.lineWidth   = rSWidth * (0.6 + rnd * 0.4);
+                        context.shadowColor = ringColor;
+                        context.shadowBlur  = sGlow * (0.7 + rnd * 0.5);
+                        context.stroke();
+                    }
+                    context.globalAlpha = 1;
+
+                } else {
+                    // STEADY (default) and NONE — clean smooth ring. NONE just has no glow.
+                    context.beginPath();
+                    context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+                    context.strokeStyle = ringColor;
+                    context.lineWidth   = rSWidth;
+                    context.shadowColor = ringColor;
+                    context.shadowBlur  = sGlow;
+                    context.stroke();
+                }
+
+                // White core highlight — shared across modes for that neon-tube pop
+                if (glowMode !== 'flicker' && glowMode !== 'wave') {
+                    context.beginPath();
+                    context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+                    context.strokeStyle  = 'rgba(255,255,255,0.45)';
+                    context.lineWidth    = Math.max(0.5, rSWidth * 0.25);
+                    context.shadowBlur   = sGlow * 0.4;
+                    context.globalAlpha  = 0.5;
+                    context.stroke();
+                    context.globalAlpha  = 1;
+                }
                 context.restore();
             }
 
@@ -2956,9 +3033,10 @@
         'ring-max':  ['Max rings reached. Four-ring fortress.', 'Full stack, Commander. Can\'t go higher.'],
         'ring-min':  ['Single ring. Classic.', 'One ring to rule them all.'],
         // Glow modes
-        'glow-steady':  ['Steady glow. Stable and clean.', 'Glow mode: STEADY. Professional.'],
-        'glow-pulse':   ['Pulse glow. Now it\'s alive.', 'Breathing portal. I love it.', 'Pulse mode — the portal has a heartbeat.'],
-        'glow-flicker': ['Flicker mode. Old neon sign vibes.', 'Flickering. Retro and gritty.', 'Neon flicker engaged.'],
+        'glow-steady':  ['Steady glow. Stable and clean.', 'Glow mode: STEADY. Professional.', 'Smooth rings. No tricks.'],
+        'glow-pulse':   ['Pulse mode. Radar rings radiating out.', 'Concentric halos engaged.', 'Frozen radar pulse, Commander.'],
+        'glow-wave':    ['Wave mode. Sine rings, beautiful.', 'Wavy rings engaged. Liquid energy.', 'Sinusoidal mode — very slick.', 'Wave pattern locked.'],
+        'glow-flicker': ['Flicker mode. Damaged neon vibes.', 'Jagged electric rings. Gritty.', 'Broken segments, on purpose.'],
         'glow-none':    ['Glow off. Flat and graphic.', 'No glow. Pure geometry.'],
         // Background modes
         'bg-trans':  ['Transparent background. Ready to drop anywhere.', 'Alpha channel engaged.'],
