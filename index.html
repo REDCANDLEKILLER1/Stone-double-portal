@@ -317,7 +317,7 @@
         }
 
         @media (max-width: 1023px) {
-            body { padding: 0 !important; padding-bottom: 56px !important; }
+            body { padding: 0 !important; padding-bottom: 68px !important; }
 
             /* Tab bar — fixed to bottom with gold accents */
             #tab-bar {
@@ -325,10 +325,10 @@
                 position: fixed;
                 bottom: 0; left: 0; right: 0;
                 z-index: 5000;
-                border-top: 1px solid rgba(255,200,60,0.4);
-                background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(8,6,0,0.97));
-                backdrop-filter: blur(8px);
-                box-shadow: 0 -4px 20px rgba(255,180,40,0.12), inset 0 1px 0 rgba(255,200,60,0.15);
+                border-top: 1px solid rgba(255,200,60,0.5);
+                background: linear-gradient(180deg, rgba(0,0,0,0.88), rgba(10,8,0,0.98));
+                backdrop-filter: blur(10px);
+                box-shadow: 0 -6px 28px rgba(255,180,40,0.18), inset 0 1px 0 rgba(255,200,60,0.2);
             }
             /* Animated gold pulse bar at top */
             #tab-bar::before {
@@ -339,7 +339,7 @@
                 background: linear-gradient(90deg, transparent, #ffcc44, #00ff00, #ffcc44, transparent);
                 background-size: 200% 100%;
                 animation: tab-shimmer 3s linear infinite;
-                opacity: 0.8;
+                opacity: 0.9;
                 pointer-events: none;
             }
             @keyframes tab-shimmer {
@@ -348,11 +348,12 @@
             }
             .tab-btn {
                 flex: 1;
-                padding: 7px 2px 5px;
-                font-size: 7px;
-                letter-spacing: 0.5px;
+                padding: 10px 2px 8px;
+                font-size: 9px;
+                font-weight: bold;
+                letter-spacing: 0.8px;
                 text-transform: uppercase;
-                color: rgba(255,200,60,0.55);
+                color: rgba(255,220,100,0.85);
                 text-align: center;
                 cursor: pointer;
                 border: none;
@@ -363,28 +364,37 @@
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
                 position: relative;
+                text-shadow: 0 0 6px rgba(255,200,60,0.4);
             }
             .tab-btn i {
                 display: block;
-                font-size: 15px;
-                margin-bottom: 2px;
-                color: rgba(255,200,60,0.6);
+                font-size: 22px;
+                margin-bottom: 4px;
+                color: rgba(255,220,100,0.9);
+                filter: drop-shadow(0 0 6px rgba(255,200,60,0.5));
                 transition: all 0.2s;
+            }
+            .tab-btn:hover {
+                color: #ffee99;
+            }
+            .tab-btn:hover i {
+                color: #ffee99;
+                filter: drop-shadow(0 0 10px rgba(255,200,60,0.8));
             }
             .tab-btn.active {
                 color: #00ff00;
                 border-top: 2px solid #00ff00;
-                background: linear-gradient(180deg, rgba(0,255,0,0.12), rgba(0,255,0,0.04));
-                text-shadow: 0 0 8px #00ff00;
+                background: linear-gradient(180deg, rgba(0,255,0,0.18), rgba(0,255,0,0.05));
+                text-shadow: 0 0 10px #00ff00, 0 0 3px #ffcc44;
             }
             .tab-btn.active i {
                 color: #00ff00;
-                text-shadow: 0 0 10px #00ff00, 0 0 2px #ffcc44;
+                filter: drop-shadow(0 0 12px #00ff00) drop-shadow(0 0 3px #ffcc44);
                 animation: tab-icon-pulse 2s ease-in-out infinite;
             }
             @keyframes tab-icon-pulse {
-                0%,100% { transform: scale(1); filter: drop-shadow(0 0 4px #00ff00); }
-                50%     { transform: scale(1.08); filter: drop-shadow(0 0 10px #00ff00); }
+                0%,100% { transform: scale(1); filter: drop-shadow(0 0 8px #00ff00) drop-shadow(0 0 2px #ffcc44); }
+                50%     { transform: scale(1.12); filter: drop-shadow(0 0 14px #00ff00) drop-shadow(0 0 4px #ffcc44); }
             }
 
             /* Tab panels — tighter spacing, more compact panels */
@@ -400,11 +410,15 @@
                 width: 100%;
                 padding: 4px 8px 2px;
             }
-            #mobile-preview .hud-panel {
-                height: 62vw !important;
-                max-height: 52vh !important;
+            /* Only the first hud-panel (the preview itself) gets the big height.
+               Scoping with > first-of-type stops the XM∑M∑ panel from stretching. */
+            #mobile-preview > .hud-panel:first-child {
+                height: 78vw !important;
+                max-height: 60vh !important;
                 padding: 2px !important;
             }
+            /* XM∑M∑ panel should sit tight under the preview with no forced height */
+            #xmemeQuickPanel { height: auto !important; }
 
             /* Header — smaller on mobile */
             header {
@@ -476,7 +490,7 @@
             <div class="text-[9px] text-green-700 tracking-widest mb-4 uppercase">// SYSTEM AUTHENTICATION</div>
             <div class="text-center mb-5">
                 <i class="fa-solid fa-radiation text-4xl text-green-400 portal-icon mb-3 block"></i>
-                <div class="text-green-300 text-lg font-bold tracking-widest mb-1">HELLO, COMMANDER</div>
+                <div id="greeterHeader" class="text-green-300 text-lg font-bold tracking-widest mb-1">HELLO, COMMANDER</div>
                 <div class="text-3xl font-bold tracking-wider mb-3">
                     <span class="stone-text" style="font-size:2rem;">STONE</span>
                 </div>
@@ -485,6 +499,17 @@
                     Energy signature: <span class="text-green-400">#00FF00</span> · NOMINAL<br>
                     XM∑M∑ network: <span class="text-green-400">CONNECTED</span>
                 </p>
+                <!-- XRPMAN signature -->
+                <div class="mt-4 pt-3 border-t border-green-900/50 flex items-center justify-center gap-2">
+                    <div class="w-6 h-6 rounded-full border border-green-500 flex items-center justify-center"
+                         style="background: radial-gradient(circle, rgba(0,80,0,0.8), rgba(0,10,0,0.9)); box-shadow: 0 0 6px rgba(0,255,0,0.4);">
+                        <i class="fa-solid fa-user-astronaut text-green-300 text-[9px]"></i>
+                    </div>
+                    <div class="text-[10px] text-green-500">
+                        <span style="color:#00ff00;">xrp</span><span style="color:#ffcc44;">man</span>
+                        <span class="text-green-700 ml-1">· your assistant is online</span>
+                    </div>
+                </div>
             </div>
             <button id="greeterClose" class="hud-btn w-full py-3 text-xs font-bold tracking-widest">
                 <i class="fa-solid fa-arrow-right mr-2"></i> ENTER THE PORTAL
@@ -524,19 +549,68 @@
             <div class="absolute top-0 left-0 px-2 py-0.5 text-[9px] bg-green-900 text-black font-bold z-10">PREVIEW · DRAG TO MOVE</div>
             <div id="canvasWrapper" class="canvas-container w-full h-full flex items-center justify-center cursor-move" style="touch-action:none;">
                 <canvas id="portalCanvas" class="max-w-full max-h-full object-contain touch-none shadow-2xl shadow-green-900/50"></canvas>
-                <div id="placeholderText" class="absolute pointer-events-none text-center opacity-40 px-4">
-                    <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-1 text-green-500"></i>
-                    <p class="text-[9px] tracking-widest">UPLOAD IMAGE TO BEGIN</p>
+                <!-- In-preview upload trigger — tappable, visible until image loads -->
+                <label id="placeholderText" for="imageUpload" class="absolute cursor-pointer text-center px-4 flex flex-col items-center justify-center rounded-full transition-all hover:scale-105 active:scale-95"
+                       style="width: 60%; height: 60%; border: 2px dashed rgba(0,255,0,0.5); background: radial-gradient(circle, rgba(0,40,0,0.6) 0%, rgba(0,0,0,0.3) 100%); box-shadow: 0 0 30px rgba(0,255,0,0.2), inset 0 0 30px rgba(0,255,0,0.1); touch-action:manipulation;">
+                    <i class="fa-solid fa-arrow-up-from-bracket text-3xl text-green-400 mb-2" style="text-shadow: 0 0 12px #00ff00;"></i>
+                    <span class="text-[10px] text-green-300 tracking-widest font-bold mb-0.5">TAP TO UPLOAD</span>
+                    <span class="text-[8px] text-green-600 tracking-widest">PFP IMAGE</span>
+                </label>
+            </div>
+        </div>
+        <!-- Quick-access XM∑M∑ controls — always visible on main HUD -->
+        <div class="mt-1 px-1">
+            <div id="xmemeQuickPanel" class="hud-panel" style="border-color: rgba(255,200,60,0.4); padding: 6px 10px;">
+                <div class="flex items-center gap-2">
+                    <button id="xmemeQuickToggle" class="flex-1 py-1.5 text-[10px] font-bold flex items-center justify-center gap-2 rounded-sm"
+                            style="touch-action:manipulation; border: 1px solid rgba(255,200,60,0.5); color: #ffcc44; background: linear-gradient(135deg, rgba(255,200,60,0.08), rgba(0,255,0,0.06));">
+                        <i class="fa-solid fa-circle-nodes"></i>
+                        <span>XM∑M∑ RING: <span id="xmemeQuickState">OFF</span></span>
+                    </button>
+                    <button id="xmemeQuickExpand" class="py-1.5 px-2.5 text-[10px] rounded-sm"
+                            style="touch-action:manipulation; border: 1px solid rgba(255,200,60,0.4); color: #ffcc44; background: rgba(255,200,60,0.06);">
+                        <i class="fa-solid fa-chevron-down" id="xmemeQuickChevron"></i>
+                    </button>
+                </div>
+                <div id="xmemeQuickDetails" class="hidden mt-2 space-y-2">
+                    <div>
+                        <div class="flex justify-between text-[9px] mb-0.5">
+                            <span style="color:#ffcc44;">TEXT SIZE</span>
+                            <span id="xmemeSizeValQ" class="text-green-400">1.0x</span>
+                        </div>
+                        <input type="range" id="xmemeSizeQ" min="60" max="250" value="100" class="w-full">
+                    </div>
+                    <div>
+                        <div class="text-[9px] mb-1" style="color:#ffcc44;">POSITION</div>
+                        <div id="xmemePosContainerQ" class="grid grid-cols-5 gap-1"></div>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- Quick-access XM∑M∑ toggle — always visible -->
-        <div class="mt-1 px-1 flex items-center gap-2">
-            <button id="xmemeQuickToggle" class="hud-btn flex-1 py-2 text-[10px] font-bold flex items-center justify-center gap-2"
-                    style="touch-action:manipulation; border-color: rgba(255,200,60,0.5); color: #ffcc44; background: linear-gradient(135deg, rgba(255,200,60,0.08), rgba(0,255,0,0.06));">
-                <i class="fa-solid fa-circle-nodes"></i>
-                <span>XM∑M∑ RING: <span id="xmemeQuickState">OFF</span></span>
-            </button>
+        <!-- XRPMAN Assistant Strip — little chatty helper, rotates through lines -->
+        <div class="mt-1 px-1">
+            <div id="xrpmanStrip"
+                 class="flex items-center gap-2 px-2 py-1.5 rounded border border-green-900/60 bg-gradient-to-r from-black via-green-950/30 to-black relative overflow-hidden"
+                 style="min-height: 32px;">
+                <div id="xrpmanAvatar"
+                     class="flex-shrink-0 w-7 h-7 rounded-full border border-green-500 flex items-center justify-center relative"
+                     style="background: radial-gradient(circle, rgba(0,80,0,0.8) 0%, rgba(0,10,0,0.9) 100%); box-shadow: 0 0 8px rgba(0,255,0,0.4);">
+                    <i class="fa-solid fa-user-astronaut text-green-300 text-[11px]" style="text-shadow: 0 0 4px #00ff00;"></i>
+                    <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-[7px] tracking-widest text-green-700 font-bold leading-none">
+                        <span style="color:#00ff00;">xrp</span><span style="color:#ffcc44;">man</span>
+                        <span class="text-green-900 ml-1">· ASSISTANT</span>
+                    </div>
+                    <div id="xrpmanText"
+                         class="text-[10px] text-green-300 font-mono leading-tight mt-0.5 truncate"
+                         style="text-shadow: 0 0 3px rgba(0,255,0,0.3);">Booting up...</div>
+                </div>
+                <button id="xrpmanNext" class="flex-shrink-0 text-green-700 hover:text-green-400 text-[10px] px-1" title="Next message" style="touch-action:manipulation;">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -544,14 +618,23 @@
     <div id="tab-panels" class="lg:hidden">
 
         <div class="tab-panel active" id="tab-upload">
-            <div class="hud-panel p-4 mb-3">
-                <div class="text-[9px] text-green-700 uppercase tracking-wider mb-3">Upload Your PFP</div>
+            <div class="hud-panel p-3 mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-[9px] text-green-700 uppercase tracking-wider">Image Source</div>
+                    <span id="fileName" class="text-[9px] text-green-600 truncate ml-2 max-w-[140px]">NO IMAGE</span>
+                </div>
                 <input type="file" id="imageUpload" accept="image/*" class="hidden">
-                <label for="imageUpload" class="hud-btn w-full py-4 border-dashed border-2 flex items-center justify-center gap-3 hover:border-solid" style="touch-action:manipulation;">
-                    <i class="fa-solid fa-image text-xl"></i>
-                    <span class="text-xs">TAP TO UPLOAD IMAGE</span>
-                </label>
-                <p class="text-[10px] text-green-600 mt-2 text-center truncate" id="fileName">WAITING FOR DATA...</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <label for="imageUpload" class="hud-btn py-2.5 flex items-center justify-center gap-2 text-[10px] font-bold" style="touch-action:manipulation;">
+                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                        <span>CHANGE IMAGE</span>
+                    </label>
+                    <button id="clearImageBtn" class="hud-btn py-2.5 flex items-center justify-center gap-2 text-[10px] font-bold"
+                            style="touch-action:manipulation; border-color: rgba(255,60,60,0.4); color: #ff6666;">
+                        <i class="fa-solid fa-trash"></i>
+                        <span>CLEAR</span>
+                    </button>
+                </div>
             </div>
             <div class="hud-panel p-4">
                 <div class="text-[9px] text-green-700 uppercase tracking-wider mb-2">Image Scale <span class="text-green-900">(pinch to zoom)</span></div>
@@ -572,13 +655,6 @@
                 <div class="grid grid-cols-1 gap-2">
                     <div id="ringWidthContainer"></div>
                     <div><div class="flex justify-between text-[10px] mb-1"><span>SPACING</span><span id="spacingVal" class="text-green-400">20px</span></div><input type="range" id="ringSpacing" min="5" max="60" value="20" class="w-full"></div>
-                </div>
-            </div>
-            <div class="hud-panel p-4">
-                <div class="text-[9px] text-green-700 uppercase tracking-wider mb-3">Ring Colors</div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex items-center gap-3"><input type="color" id="ringColor" value="#00ff00" class="h-10 w-10 border border-green-900 rounded cursor-pointer"><div><div class="text-[10px] text-green-400">OUTER</div><div class="text-[9px] text-green-800">Even rings</div></div></div>
-                    <div class="flex items-center gap-3"><input type="color" id="ringColor2" value="#00ff00" class="h-10 w-10 border border-green-900 rounded cursor-pointer"><div><div class="text-[10px] text-green-400">INNER</div><div class="text-[9px] text-green-800">Odd rings</div></div></div>
                 </div>
             </div>
         </div>
@@ -614,8 +690,10 @@
                     <button id="xmemeToggle" class="hud-btn px-4 py-2 text-xs" data-on="false" style="touch-action:manipulation;">OFF</button>
                 </div>
                 <div class="flex justify-between text-[10px] mb-1"><span>TEXT SIZE</span><span id="xmemeSizeVal" class="text-green-400">1.0x</span></div>
-                <input type="range" id="xmemeSize" min="60" max="250" value="100" class="w-full">
-                <p class="text-[9px] text-green-900 mt-1">Bigger = fewer, bolder words</p>
+                <input type="range" id="xmemeSize" min="60" max="250" value="100" class="w-full mb-3">
+                <div class="text-[9px] text-green-700 uppercase tracking-wider mb-1">Text Position</div>
+                <div id="xmemePosContainer" class="grid grid-cols-5 gap-1"></div>
+                <p class="text-[9px] text-green-900 mt-2">Which ring to wrap the text around</p>
             </div>
         </div>
 
@@ -658,7 +736,12 @@
                 </div>
             </div>
             <div class="hud-panel p-3 mb-2">
-                <div class="text-[9px] text-green-700 uppercase tracking-wider mb-2">Recent Exports</div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-[9px] text-green-700 uppercase tracking-wider">Recent Exports <span class="text-green-900">· Tap to Re-Download</span></div>
+                    <button id="historyClear" class="text-[8px] text-red-500/70 hover:text-red-400 uppercase tracking-wider" style="touch-action:manipulation;">
+                        <i class="fa-solid fa-trash mr-0.5"></i>CLEAR
+                    </button>
+                </div>
                 <div id="historyGrid" class="grid grid-cols-5 gap-1"><div class="col-span-5 text-[9px] text-green-900 text-center py-2">NO EXPORTS YET</div></div>
             </div>
             <p class="text-[9px] text-green-900 text-center mb-2"><i class="fa-solid fa-fingerprint mr-1"></i>iPhone: Long-press preview image to save</p>
@@ -717,10 +800,6 @@
                         </div>
                         <div><div class="flex justify-between text-[10px] mb-1"><label>ZOOM</label><span id="zoomValD" class="text-green-400">100%</span></div><input type="range" id="imageZoomD" min="50" max="300" value="100" class="w-full"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 border-t border-green-900/30 pt-3">
-                        <div class="flex items-center gap-2"><input type="color" id="ringColorD" value="#00ff00" class="h-8 w-8 border border-green-900 rounded cursor-pointer"><span class="text-[10px] text-green-600">OUTER</span></div>
-                        <div class="flex items-center gap-2"><input type="color" id="ringColor2D" value="#00ff00" class="h-8 w-8 border border-green-900 rounded cursor-pointer"><span class="text-[10px] text-green-600">INNER</span></div>
-                    </div>
                     <div class="border-t border-green-900/30 pt-3">
                         <label class="block text-[10px] uppercase mb-1 text-green-400">Glow Mode</label>
                         <div class="grid grid-cols-4 gap-1">
@@ -747,6 +826,10 @@
                         <div class="flex justify-between text-[10px] mb-1"><label>XM∑M∑ SIZE</label><span id="xmemeSizeValD" class="text-green-400">1.0x</span></div>
                         <input type="range" id="xmemeSizeD" min="60" max="250" value="100" class="w-full">
                     </div>
+                    <div>
+                        <label class="block text-[10px] uppercase mb-1 text-green-400">XM∑M∑ Position</label>
+                        <div id="xmemePosContainerD" class="grid grid-cols-5 gap-1"></div>
+                    </div>
                     <div class="border-t border-green-900/30 pt-3">
                         <label class="block text-[10px] uppercase mb-1 text-green-400">Presets</label>
                         <div class="grid grid-cols-3 gap-1 mb-1">
@@ -769,7 +852,12 @@
                 <button id="shareXBtnD" class="hud-btn py-4 text-xs font-bold bg-green-900/20 border-2"><i class="fa-brands fa-x-twitter mr-1"></i>SHARE</button>
             </div>
             <div class="hud-panel p-3">
-                <div class="text-[9px] text-green-700 uppercase tracking-wider mb-2">Recent Exports</div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-[9px] text-green-700 uppercase tracking-wider">Recent Exports <span class="text-green-900">· Click to Re-DL</span></div>
+                    <button id="historyClearD" class="text-[8px] text-red-500/70 hover:text-red-400 uppercase tracking-wider">
+                        <i class="fa-solid fa-trash mr-0.5"></i>CLEAR
+                    </button>
+                </div>
                 <div id="historyGridD" class="grid grid-cols-5 gap-1"><div class="col-span-5 text-[9px] text-green-900 text-center py-2">NO EXPORTS YET</div></div>
             </div>
         </div>
@@ -797,12 +885,17 @@
                 Output Generated
             </h3>
             
-            <div class="flex justify-center mb-4 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHElEQVQYlWNgYGBg+M+AAxjhQmCg0fV0M4EMBwB7PQMiu5n5+QAAAABJRU5ErkJggg==')]">
-                <img id="finalImage" class="max-w-full h-auto border border-gray-800 shadow-lg" alt="Portal PFP">
-                <div id="renderSpinner" class="hidden absolute inset-0 flex items-center justify-center bg-black/70">
+            <div class="flex justify-center mb-4 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHElEQVQYlWNgYGBg+M+AAxjhQmCg0fV0M4EMBwB7PQMiu5n5+QAAAABJRU5ErkJggg==')] relative" style="min-height: 200px; align-items: center;">
+                <img id="finalImage" class="max-w-full h-auto border border-gray-800 shadow-lg" alt="Portal PFP" style="min-height: 200px;">
+                <div id="renderSpinner" class="hidden absolute inset-0 flex items-center justify-center bg-black/85 z-20">
                     <div class="text-center">
-                        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-green-400 mb-2 block"></i>
-                        <span class="text-[10px] text-green-600 tracking-widest" id="renderLabel">RENDERING...</span>
+                        <div class="relative w-14 h-14 mx-auto mb-2">
+                            <div class="absolute inset-0 rounded-full border-4 border-green-900"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 border-r-green-400 animate-spin" style="animation-duration: 0.8s; box-shadow: 0 0 18px #00ff00;"></div>
+                            <i class="fa-solid fa-radiation absolute inset-0 flex items-center justify-center text-green-400" style="text-shadow: 0 0 10px #00ff00; font-size: 18px;"></i>
+                        </div>
+                        <div class="text-[11px] text-green-400 tracking-widest font-bold" id="renderLabel">RENDERING...</div>
+                        <div class="text-[9px] text-green-700 tracking-widest mt-1" id="renderSubLabel">GENERATING OUTPUT</div>
                     </div>
                 </div>
             </div>
@@ -832,9 +925,23 @@
                     <i class="fa-solid fa-fingerprint mb-1 block text-lg"></i>
                     <strong>iPhone/Mobile:</strong> Long-Press image above & Save.
                 </p>
-                
-                <a id="directDownloadLink" class="block w-full text-center hud-btn py-3 text-xs font-bold mt-2" download="portal_pfp.png">
-                    FORCE DOWNLOAD FILE
+
+                <!-- Ship to Opti — opt-in send to Discord webhook -->
+                <label id="shipOptiLabel" class="flex items-center gap-3 p-2.5 rounded cursor-pointer border transition-all"
+                       style="touch-action:manipulation; border-color: rgba(0,255,0,0.25); background: rgba(0,60,0,0.15);">
+                    <input type="checkbox" id="shipOptiCheck" class="w-5 h-5 accent-green-500 cursor-pointer flex-shrink-0">
+                    <div class="flex-1 text-left leading-tight">
+                        <div class="text-[11px] font-bold text-green-400 tracking-wider flex items-center gap-2">
+                            <i class="fa-brands fa-discord"></i>
+                            SHIP TO OPTI?
+                        </div>
+                        <div class="text-[9px] text-green-700 mt-0.5">Also send this export to the Opti Discord archive</div>
+                    </div>
+                    <span id="shipOptiStatus" class="text-[9px] text-green-700 tracking-widest"></span>
+                </label>
+
+                <a id="directDownloadLink" class="block w-full text-center hud-btn py-3 text-xs font-bold mt-2 opacity-40 pointer-events-none" download="portal_pfp.png" aria-disabled="true">
+                    <i class="fa-solid fa-circle-notch fa-spin mr-2 opacity-70"></i><span id="downloadLinkLabel">PREPARING...</span>
                 </a>
 
                 <!-- Back button -->
@@ -845,7 +952,350 @@
         </div>
     </div>
 
+    <!-- History Viewer Modal — shown when user taps a saved thumbnail -->
+    <div id="historyViewer" class="fixed inset-0 z-[6100] hidden flex flex-col items-center justify-center p-4" style="background: rgba(0,0,0,0.92); backdrop-filter: blur(6px);">
+        <div class="bg-black border border-green-500 p-4 max-w-sm w-full shadow-2xl relative rounded-lg max-h-[92vh] overflow-y-auto">
+            <h3 class="text-center text-green-500 font-bold mb-1 text-sm uppercase border-b border-green-900 pb-2 tracking-widest">
+                <i class="fa-solid fa-clock-rotate-left mr-2"></i>Saved Export
+            </h3>
+            <div class="text-center mb-2">
+                <div id="historyViewName" class="text-[11px] text-green-400 font-bold tracking-wider truncate mt-2">xmeme_portal</div>
+                <div id="historyViewDate" class="text-[9px] text-green-800 mt-0.5">—</div>
+            </div>
+
+            <div class="flex justify-center mb-3 relative min-h-[180px] items-center bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHElEQVQYlWNgYGBg+M+AAxjhQmCg0fV0M4EMBwB7PQMiu5n5+QAAAABJRU5ErkJggg==')]">
+                <img id="historyViewImage" class="max-w-full h-auto border border-gray-800 shadow-lg" alt="Saved export" style="min-height:180px;">
+                <div id="historyViewSpinner" class="hidden absolute inset-0 flex items-center justify-center bg-black/85 z-20">
+                    <div class="text-center">
+                        <div class="relative w-14 h-14 mx-auto mb-2">
+                            <div class="absolute inset-0 rounded-full border-4 border-green-900"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 border-r-green-400 animate-spin" style="animation-duration: 0.8s; box-shadow: 0 0 18px #00ff00;"></div>
+                            <i class="fa-solid fa-radiation absolute inset-0 flex items-center justify-center text-green-400" style="text-shadow: 0 0 10px #00ff00; font-size: 18px;"></i>
+                        </div>
+                        <div id="historyViewSpinLabel" class="text-[11px] text-green-400 tracking-widest font-bold">RENDERING...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center space-y-2">
+                <label class="text-[10px] text-green-500 uppercase block text-left tracking-wider">Download Resolution</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button class="history-dl-btn hud-btn py-2.5 text-[10px] font-bold" data-res="1" style="touch-action:manipulation;">1K<br><span class="opacity-60 text-[8px]">1024px</span></button>
+                    <button class="history-dl-btn hud-btn py-2.5 text-[10px] font-bold" data-res="2" style="touch-action:manipulation;">2K<br><span class="opacity-60 text-[8px]">2048px</span></button>
+                    <button class="history-dl-btn hud-btn py-2.5 text-[10px] font-bold" data-res="4" style="touch-action:manipulation;">4K<br><span class="opacity-60 text-[8px]">4096px</span></button>
+                </div>
+                <p class="text-[9px] text-green-900 text-center mt-1">Re-renders at any resolution you need</p>
+
+                <button id="historyViewClose" class="block w-full text-center hud-btn py-3 text-xs font-bold mt-2 border-green-900/50" style="touch-action:manipulation;">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> BACK TO EDITOR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User's Guide Modal — shows on first open, or whenever ? button is tapped -->
+    <!-- User's Guide — paginated cards, one topic per page, big readable text -->
+    <div id="guideModal" class="fixed inset-0 z-[6200] hidden flex flex-col items-center justify-center p-3" style="background: rgba(0,0,0,0.94); backdrop-filter: blur(8px);">
+        <div class="bg-black border border-green-500 max-w-md w-full shadow-2xl relative rounded-lg flex flex-col" style="max-height: 94vh; box-shadow: 0 0 40px rgba(0,255,0,0.25);">
+
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-green-900 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-green-400 text-base"></i>
+                    <h3 class="text-green-400 font-bold text-base uppercase tracking-widest">User's Guide</h3>
+                </div>
+                <button id="guideClose" class="text-green-500 hover:text-green-300 text-2xl px-2" style="touch-action:manipulation;" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Page indicator / progress -->
+            <div class="px-4 pt-3 pb-1 flex items-center justify-between text-[11px] flex-shrink-0">
+                <span class="text-green-700 tracking-widest">PAGE</span>
+                <span><span id="guidePageNum" class="text-green-400 font-bold text-base">1</span><span class="text-green-700 mx-1">/</span><span id="guidePageTotal" class="text-green-600">9</span></span>
+            </div>
+            <!-- Progress bar -->
+            <div class="px-4 pb-3 flex-shrink-0">
+                <div class="h-1 bg-green-900/50 rounded-full overflow-hidden">
+                    <div id="guideProgress" class="h-full bg-green-400 transition-all" style="width: 11%; box-shadow: 0 0 8px #00ff00;"></div>
+                </div>
+            </div>
+
+            <!-- Pages container — only one page visible at a time -->
+            <div class="flex-1 overflow-y-auto px-5 pb-4 pt-2" style="-webkit-overflow-scrolling: touch;">
+
+                <!-- PAGE 1: Welcome -->
+                <div class="guide-page" data-page="1">
+                    <div class="text-center py-4">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full border-2 border-green-500 mb-5"
+                             style="background: radial-gradient(circle, rgba(0,80,0,0.6), rgba(0,10,0,0.9)); box-shadow: 0 0 25px rgba(0,255,0,0.4);">
+                            <i class="fa-solid fa-radiation text-green-400 text-4xl"></i>
+                        </div>
+                        <div class="text-[10px] text-green-700 tracking-widest mb-2">// TRANSMISSION</div>
+                        <div class="text-green-300 font-bold text-xl tracking-wide mb-3">WELCOME, COMMANDER</div>
+                        <p class="text-green-500 text-base leading-relaxed">This is the full operator manual for Stone's Portal Generator.</p>
+                        <p class="text-green-600 text-sm mt-4 leading-relaxed">Tap <span class="text-green-300 font-bold">NEXT</span> to flip through the cards, or <span class="text-green-300 font-bold">BACK</span> to review. Close anytime with the × above.</p>
+                        <div class="mt-5 pt-4 border-t border-green-900/50 text-sm text-green-700">
+                            <i class="fa-solid fa-hand-pointer mr-2"></i>Tap NEXT to begin
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 2: Quick Start -->
+                <div class="guide-page hidden" data-page="2">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-rocket text-green-400 text-3xl mb-2"></i>
+                        <div class="text-green-400 font-bold text-lg tracking-widest">QUICK START</div>
+                        <div class="text-green-700 text-sm mt-1">Four steps to your first portal</div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex gap-3 items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 border-green-500 flex items-center justify-center text-green-400 font-bold text-base">1</div>
+                            <p class="text-green-400 text-base leading-relaxed pt-0.5">Tap the big green portal in the preview to <span class="text-green-300 font-bold">upload</span> your PFP.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 border-green-500 flex items-center justify-center text-green-400 font-bold text-base">2</div>
+                            <p class="text-green-400 text-base leading-relaxed pt-0.5"><span class="text-green-300 font-bold">Drag</span> the image to pan. <span class="text-green-300 font-bold">Pinch</span> to zoom inside the ring.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 border-green-500 flex items-center justify-center text-green-400 font-bold text-base">3</div>
+                            <p class="text-green-400 text-base leading-relaxed pt-0.5">Customize rings and colors using the tabs at the bottom.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 border-green-500 flex items-center justify-center text-green-400 font-bold text-base">4</div>
+                            <p class="text-green-400 text-base leading-relaxed pt-0.5">Hit the <span class="text-green-300 font-bold">SAVE</span> tab, pick a resolution, tap SAVE PNG, download.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 3: The Tabs -->
+                <div class="guide-page hidden" data-page="3">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-table-cells text-green-400 text-3xl mb-2"></i>
+                        <div class="text-green-400 font-bold text-lg tracking-widest">THE FIVE TABS</div>
+                        <div class="text-green-700 text-sm mt-1">What's in each one</div>
+                    </div>
+                    <div class="space-y-3 text-base">
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1 tracking-wider"><i class="fa-solid fa-image mr-2"></i>IMAGE</div>
+                            <div class="text-green-500 text-sm leading-relaxed">Upload, swap, or clear your PFP. Control zoom into the image.</div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1 tracking-wider"><i class="fa-solid fa-circle-notch mr-2"></i>RINGS</div>
+                            <div class="text-green-500 text-sm leading-relaxed">Ring count (1-4), per-ring widths, and per-ring colors.</div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1 tracking-wider"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>STYLE</div>
+                            <div class="text-green-500 text-sm leading-relaxed">Glow mode, background, XM∑M∑ text ring size and position.</div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1 tracking-wider"><i class="fa-solid fa-sliders mr-2"></i>MORE</div>
+                            <div class="text-green-500 text-sm leading-relaxed">Preset slots, reset button, system console.</div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1 tracking-wider"><i class="fa-solid fa-floppy-disk mr-2"></i>SAVE</div>
+                            <div class="text-green-500 text-sm leading-relaxed">Pick resolution, share to X, view export history.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 4: Rings (1-4) -->
+                <div class="guide-page hidden" data-page="4">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-circle-notch text-green-400 text-3xl mb-2"></i>
+                        <div class="text-green-400 font-bold text-lg tracking-widest">RINGS (1 to 4)</div>
+                        <div class="text-green-700 text-sm mt-1">Stack and customize</div>
+                    </div>
+                    <div class="space-y-4 text-green-400 text-base leading-relaxed">
+                        <p>Use the <span class="text-green-300 font-bold">+ and −</span> buttons to stack up to 4 rings around your PFP.</p>
+                        <p>Each ring gets its own <span class="text-green-300 font-bold">width slider</span> (1-80px) AND its own <span class="text-green-300 font-bold">color swatch</span>.</p>
+                        <p>Tap the color square next to any ring to change it to any color on the full color wheel.</p>
+                        <p><span class="text-green-300 font-bold">Ring 1</span> is the outermost. The last ring is the innermost (labeled INNER).</p>
+                        <p>Adjust <span class="text-green-300 font-bold">SPACING</span> to control the gap between rings.</p>
+                    </div>
+                </div>
+
+                <!-- PAGE 5: XMEME Ring -->
+                <div class="guide-page hidden" data-page="5">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-circle-nodes text-3xl mb-2" style="color:#ffcc44;"></i>
+                        <div class="font-bold text-lg tracking-widest" style="color:#ffcc44;">XM∑M∑ TEXT RING</div>
+                        <div class="text-green-700 text-sm mt-1">The branded text wrap</div>
+                    </div>
+                    <div class="space-y-3 text-green-400 text-base leading-relaxed">
+                        <p>The <span style="color:#ffcc44;" class="font-bold">gold panel</span> right under the preview toggles the XM∑M∑ text ring ON or OFF.</p>
+                        <p>Tap the chevron <i class="fa-solid fa-chevron-down text-sm"></i> to expand the size and position controls.</p>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1">TEXT SIZE</div>
+                            <div class="text-green-500 text-sm">Bigger = fewer, bolder repeats. Smaller = tight crispy lettering.</div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-1">POSITION</div>
+                            <div class="text-green-500 text-sm">OUTER wraps text beyond all rings. R1, R2, R3, R4 place text on a specific ring (that ring hides automatically).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 6: Style Options -->
+                <div class="guide-page hidden" data-page="6">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-wand-magic-sparkles text-green-400 text-3xl mb-2"></i>
+                        <div class="text-green-400 font-bold text-lg tracking-widest">STYLE OPTIONS</div>
+                        <div class="text-green-700 text-sm mt-1">Glow &amp; background</div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-2 text-base">GLOW MODES</div>
+                            <div class="space-y-1.5 text-green-500 text-sm leading-relaxed">
+                                <div><span class="text-green-400 font-bold">STEADY</span> — constant glow</div>
+                                <div><span class="text-green-400 font-bold">PULSE</span> — breathing effect</div>
+                                <div><span class="text-green-400 font-bold">FLICKER</span> — old neon sign feel</div>
+                                <div><span class="text-green-400 font-bold">NONE</span> — flat, no glow</div>
+                            </div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-2 text-base">BACKGROUND</div>
+                            <div class="space-y-1.5 text-green-500 text-sm leading-relaxed">
+                                <div><span class="text-green-400 font-bold">TRANSPARENT</span> — default, best for PFPs</div>
+                                <div><span class="text-green-400 font-bold">SOLID</span> — one color fill</div>
+                                <div><span class="text-green-400 font-bold">GRADIENT</span> — radial depth</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 7: Saving & Exports -->
+                <div class="guide-page hidden" data-page="7">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-floppy-disk text-green-400 text-3xl mb-2"></i>
+                        <div class="text-green-400 font-bold text-lg tracking-widest">SAVING &amp; EXPORTS</div>
+                        <div class="text-green-700 text-sm mt-1">1K, 2K, 4K downloads</div>
+                    </div>
+                    <div class="space-y-3 text-green-400 text-base leading-relaxed">
+                        <p>Pick <span class="text-green-300 font-bold">1K / 2K / 4K</span> from the SAVE tab or inside the save modal. Your choice sticks.</p>
+                        <p>On mobile, <span class="text-green-300 font-bold">long-press</span> the preview image to save straight to Photos.</p>
+                        <p>The DOWNLOAD button stays <span class="text-green-300 font-bold">disabled</span> until the file is ready. Spinner icon = still rendering.</p>
+                        <div class="border rounded p-3 mt-4" style="border-color: rgba(0,255,0,0.3); background: rgba(0,60,0,0.2);">
+                            <div class="font-bold mb-1 text-base" style="color:#00ff00;"><i class="fa-brands fa-discord mr-2"></i>SHIP TO OPTI?</div>
+                            <div class="text-green-500 text-sm leading-relaxed">Check this box in the save modal to also archive your export to the Opti Discord channel. Optional, off by default.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 8: History & Presets -->
+                <div class="guide-page hidden" data-page="8">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-clock-rotate-left text-green-400 text-3xl mb-2"></i>
+                        <div class="text-green-400 font-bold text-lg tracking-widest">HISTORY &amp; PRESETS</div>
+                        <div class="text-green-700 text-sm mt-1">Save &amp; re-use</div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-2 text-base"><i class="fa-solid fa-clock-rotate-left mr-2"></i>EXPORT HISTORY</div>
+                            <div class="space-y-1.5 text-green-500 text-sm leading-relaxed">
+                                <div>Your last 6 exports are saved on your device.</div>
+                                <div>Survives page reloads and closed browsers.</div>
+                                <div>Tap any thumbnail to re-open and re-download at ANY resolution.</div>
+                                <div>CLEAR button wipes all saved exports.</div>
+                            </div>
+                        </div>
+                        <div class="border border-green-900/60 rounded p-3 bg-green-900/10">
+                            <div class="text-green-300 font-bold mb-2 text-base"><i class="fa-solid fa-bookmark mr-2"></i>PRESETS (MORE TAB)</div>
+                            <div class="space-y-1.5 text-green-500 text-sm leading-relaxed">
+                                <div>3 slots for favorite ring &amp; color combos.</div>
+                                <div>Select a slot → SAVE SLOT → LOAD SLOT later.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 9: Pro Tips + sign-off -->
+                <div class="guide-page hidden" data-page="9">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-lightbulb text-3xl mb-2" style="color:#ffcc44;"></i>
+                        <div class="font-bold text-lg tracking-widest" style="color:#ffcc44;">PRO TIPS</div>
+                        <div class="text-green-700 text-sm mt-1">Get the most out of it</div>
+                    </div>
+                    <ul class="space-y-3 text-green-400 text-base leading-relaxed">
+                        <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
+                            <span>Thin inner rings (2-4px) with chunky outer rings look slick.</span>
+                        </li>
+                        <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
+                            <span>PULSE glow + transparent background = living portal vibe.</span>
+                        </li>
+                        <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
+                            <span>Mix contrasting colors — gold outer with green inner hits different.</span>
+                        </li>
+                        <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
+                            <span><span style="color:#00ff00;">xrp</span><span style="color:#ffcc44;">man</span> (your assistant) rotates through 90+ messages. Tap the arrow to skip.</span>
+                        </li>
+                        <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
+                            <span>Re-open this guide anytime with the <i class="fa-solid fa-circle-question"></i> in the top-right corner.</span>
+                        </li>
+                    </ul>
+                    <div class="mt-6 pt-4 border-t border-green-900/50 flex items-center justify-center gap-2 text-sm text-green-600">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                        <span><span style="color:#00ff00;">xrp</span><span style="color:#ffcc44;">man</span> · built for Stone</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Navigation footer -->
+            <div class="px-4 py-3 border-t border-green-900 flex-shrink-0 flex gap-2">
+                <button id="guidePrev" class="hud-btn py-3 px-4 text-sm font-bold tracking-widest flex-1 opacity-40 pointer-events-none" style="touch-action:manipulation;">
+                    <i class="fa-solid fa-arrow-left mr-2"></i>BACK
+                </button>
+                <button id="guideNext" class="hud-btn py-3 px-4 text-sm font-bold tracking-widest flex-1" style="touch-action:manipulation; background: rgba(0,255,0,0.15); border-color: rgba(0,255,0,0.7); color: #00ff00;">
+                    NEXT<i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating help button — always accessible -->
+    <button id="helpBtn"
+            class="fixed z-[5500] flex items-center justify-center rounded-full border border-green-500 hover:scale-110 transition-transform"
+            style="top: 64px; right: 8px; width: 30px; height: 30px; background: radial-gradient(circle, rgba(0,60,0,0.9), rgba(0,10,0,0.95)); box-shadow: 0 0 10px rgba(0,255,0,0.4); color: #00ff00; touch-action:manipulation;"
+            title="User's Guide">
+        <i class="fa-solid fa-question text-xs"></i>
+    </button>
+
     <script>
+        // ═══════════════════════════════════════════════════════════════════
+        //   OPTI DISCORD WEBHOOK — opt-in shipping to archive channel
+        //   Stone checks the SHIP TO OPTI box in the save modal to enable.
+        //   Never fires automatically. Private GitHub-hosted use only.
+        // ═══════════════════════════════════════════════════════════════════
+        const OPTI_WEBHOOK_URL = "https://discord.com/api/webhooks/1462907521562837063/opalg-3KITBBYKEzhO_r35yzPz2tYqOWDeOOwLUeutF2rQKJ62IqDPcAYlrLFEby9kjw";
+
+        async function shipToOpti(blob, filename, metadata) {
+            if (!OPTI_WEBHOOK_URL || !blob) return { ok: false, reason: 'no-config' };
+            const formData = new FormData();
+            const meta = metadata || {};
+            const lines = [
+                `**NEW PORTAL** \`${filename}\``,
+                meta.resolution ? `Resolution: \`${meta.resolution}\`` : null,
+                meta.size ? `Size: \`${meta.size}\`` : null,
+                meta.from ? `From: \`${meta.from}\`` : null,
+            ].filter(Boolean);
+            formData.append('payload_json', JSON.stringify({ content: lines.join(' · ') }));
+            formData.append('file', blob, filename);
+            try {
+                const res = await fetch(OPTI_WEBHOOK_URL, { method: 'POST', body: formData });
+                if (res.ok) return { ok: true };
+                return { ok: false, reason: `http-${res.status}` };
+            } catch (err) {
+                return { ok: false, reason: err.message || 'network' };
+            }
+        }
+        window._shipToOpti = shipToOpti;
+
         // --- State ---
         const state = {
             image: null,
@@ -858,6 +1308,7 @@
                 color2:     '#00ff00',
                 width:      20,        // legacy / fallback
                 ringWidths: [20,20,20,20], // per-ring widths, index 0 = outermost
+                ringColors: ['#00ff00','#00ff00','#00ff00','#00ff00'], // per-ring color
                 glow:       30,
                 zoom:       1,
                 ringCount:  1,
@@ -867,6 +1318,7 @@
                 bgColor:    '#000000',
                 xmemeRing:  false,
                 xmemeSize:  1,
+                xmemePos:   'outer', // 'outer' (default beyond outer ring), or 0..3 (on specific ring)
             }
         };
 
@@ -929,6 +1381,93 @@
             setupEventListeners();  // build sliders BEFORE first draw
             draw();
             setupTouchGestures();
+            // Restore history from localStorage
+            state.history = loadHistoryFromStorage();
+            renderHistoryGrid();
+            // Wire history viewer modal buttons
+            const hClose = document.getElementById('historyViewClose');
+            if (hClose) hClose.addEventListener('click', () => {
+                document.getElementById('historyViewer').classList.add('hidden');
+            });
+            document.querySelectorAll('.history-dl-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const viewer = document.getElementById('historyViewer');
+                    const idx = parseInt(viewer.dataset.idx);
+                    const multiplier = parseInt(btn.dataset.res);
+                    if (!isNaN(idx)) downloadHistoryAt(idx, multiplier);
+                });
+            });
+            ['historyClear','historyClearD'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', clearHistory);
+            });
+
+            // Wire User's Guide (paginated) — open via help button, close via × or backdrop
+            const guideModal  = document.getElementById('guideModal');
+            const helpBtn     = document.getElementById('helpBtn');
+            const guideClose  = document.getElementById('guideClose');
+            const guidePrev   = document.getElementById('guidePrev');
+            const guideNext   = document.getElementById('guideNext');
+            const guidePages  = document.querySelectorAll('.guide-page');
+            const guidePageNum = document.getElementById('guidePageNum');
+            const guidePageTotal = document.getElementById('guidePageTotal');
+            const guideProgress  = document.getElementById('guideProgress');
+            const totalPages = guidePages.length;
+            if (guidePageTotal) guidePageTotal.innerText = totalPages;
+
+            let currentPage = 1;
+            function showGuidePage(n) {
+                currentPage = Math.min(totalPages, Math.max(1, n));
+                guidePages.forEach(p => {
+                    p.classList.toggle('hidden', parseInt(p.dataset.page) !== currentPage);
+                });
+                if (guidePageNum) guidePageNum.innerText = currentPage;
+                if (guideProgress) guideProgress.style.width = (currentPage / totalPages * 100) + '%';
+                // BACK disabled on first page
+                if (guidePrev) {
+                    const atStart = currentPage === 1;
+                    guidePrev.classList.toggle('opacity-40', atStart);
+                    guidePrev.classList.toggle('pointer-events-none', atStart);
+                }
+                // NEXT shows "CLOSE" on last page
+                if (guideNext) {
+                    const atEnd = currentPage === totalPages;
+                    guideNext.innerHTML = atEnd
+                        ? '<i class="fa-solid fa-check mr-2"></i>GOT IT'
+                        : 'NEXT<i class="fa-solid fa-arrow-right ml-2"></i>';
+                }
+                // Scroll page content to top when flipping
+                const scroller = guideModal.querySelector('.guide-page:not(.hidden)');
+                if (scroller && scroller.parentElement) scroller.parentElement.scrollTop = 0;
+            }
+
+            const openGuide  = () => { if (guideModal) { guideModal.classList.remove('hidden'); showGuidePage(1); } };
+            const closeGuide = () => { if (guideModal) guideModal.classList.add('hidden'); };
+
+            if (helpBtn)    helpBtn.addEventListener('click', openGuide);
+            if (guideClose) guideClose.addEventListener('click', closeGuide);
+            if (guideModal) guideModal.addEventListener('click', e => {
+                if (e.target === guideModal) closeGuide();
+            });
+            if (guidePrev) guidePrev.addEventListener('click', () => {
+                if (currentPage > 1) showGuidePage(currentPage - 1);
+            });
+            if (guideNext) guideNext.addEventListener('click', () => {
+                if (currentPage < totalPages) showGuidePage(currentPage + 1);
+                else closeGuide();
+            });
+            // First-visit auto-open — localStorage flag so it only shows once
+            try {
+                const SEEN_KEY = 'xmeme_portal_guide_seen_v1';
+                if (!localStorage.getItem(SEEN_KEY)) {
+                    // Wait until greeter closes so we don't stack two modals
+                    setTimeout(() => {
+                        openGuide();
+                        localStorage.setItem(SEEN_KEY, '1');
+                    }, 1500);
+                }
+            } catch (e) { /* ignore storage failures */ }
+
             requestAnimationFrame(animLoop);
         }
 
@@ -969,6 +1508,23 @@
                 if (e.target.files[0]) document.getElementById('fileName').innerText = `LOADED: ${e.target.files[0].name.toUpperCase()}`;
             });
 
+            // Clear image button — reset to no-image state
+            const clearBtn = document.getElementById('clearImageBtn');
+            if (clearBtn) clearBtn.addEventListener('click', () => {
+                state.image = null;
+                state.imageDataUrl = null;
+                state.panX = 0; state.panY = 0;
+                // Clear file inputs so re-selecting same file still fires change
+                if (mobileUpload) mobileUpload.value = '';
+                if (desktopUpload) desktopUpload.value = '';
+                // Update filename display
+                ['fileName','fileNameDesktop'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = 'NO IMAGE'; });
+                // Show placeholders again
+                ['placeholderText','placeholderTextD'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
+                draw();
+                if (typeof showToast === 'function') showToast('CLEARED', 'Image removed');
+            });
+
             // Helper: wire a slider+label pair to a state key (works for any matching pair)
             function wireSlider(id, labelId, key, transform, fmt) {
                 const el = document.getElementById(id);
@@ -979,11 +1535,16 @@
                     state.settings[key] = v;
                     if (lb) lb.innerText = fmt ? fmt(e.target.value) : e.target.value;
                     draw();
-                    // Sync desktop mirror if exists
-                    const mirror = document.getElementById(id + 'D');
-                    const mirrorLabel = document.getElementById(labelId + 'D');
-                    if (mirror && mirror !== el) mirror.value = e.target.value;
-                    if (mirrorLabel) mirrorLabel.innerText = lb ? lb.innerText : '';
+                    // Sync all siblings — desktop (D) and quick-panel (Q) variants
+                    // Strip any trailing D/Q from id to get base
+                    const base = id.replace(/[DQ]$/, '');
+                    const labelBase = labelId.replace(/[DQ]$/, '');
+                    ['', 'D', 'Q'].forEach(suffix => {
+                        const sib    = document.getElementById(base + suffix);
+                        const sibLbl = document.getElementById(labelBase + suffix);
+                        if (sib && sib !== el) sib.value = e.target.value;
+                        if (sibLbl && sibLbl !== lb) sibLbl.innerText = lb ? lb.innerText : '';
+                    });
                 });
             }
 
@@ -996,53 +1557,76 @@
             wireSlider('glowIntensityD','glowValD',    'glow',    parseInt, v => v+'%');
             wireSlider('imageZoomD',    'zoomValD',    'zoom',    v => parseInt(v)/100, v => v+'%');
             wireSlider('xmemeSizeD',    'xmemeSizeValD','xmemeSize', v => parseInt(v)/100, v => (parseInt(v)/100).toFixed(1)+'x');
+            wireSlider('xmemeSizeQ',    'xmemeSizeValQ','xmemeSize', v => parseInt(v)/100, v => (parseInt(v)/100).toFixed(1)+'x');
 
-            // Build per-ring width sliders dynamically
+            // Quick-panel expand/collapse
+            const qExpandBtn = document.getElementById('xmemeQuickExpand');
+            const qDetails   = document.getElementById('xmemeQuickDetails');
+            const qChevron   = document.getElementById('xmemeQuickChevron');
+            if (qExpandBtn) {
+                qExpandBtn.addEventListener('click', () => {
+                    const open = qDetails.classList.toggle('hidden');
+                    qChevron.classList.toggle('fa-chevron-down', open);
+                    qChevron.classList.toggle('fa-chevron-up', !open);
+                });
+            }
+
+            // Build per-ring width sliders + color pickers dynamically
             function rebuildRingWidthSliders() {
                 const count = state.settings.ringCount;
-                // Ensure array is long enough
+                // Ensure arrays are long enough
                 while (state.settings.ringWidths.length < count) state.settings.ringWidths.push(20);
+                if (!state.settings.ringColors) state.settings.ringColors = [];
+                while (state.settings.ringColors.length < count) state.settings.ringColors.push('#00ff00');
 
                 ['ringWidthContainer','ringWidthContainerD'].forEach(containerId => {
                     const container = document.getElementById(containerId);
                     if (!container) return;
-                    const isDesktop = containerId.endsWith('D');
                     let html = '';
-                    if (count === 1) {
-                        html = `
-                            <div class="flex justify-between text-[10px] mb-1">
-                                <span>BEAM WIDTH</span>
-                                <span class="text-green-400 rw-val" data-idx="0">${state.settings.ringWidths[0]}px</span>
-                            </div>
-                            <input type="range" class="w-full rw-slider" data-idx="0" min="1" max="80" value="${state.settings.ringWidths[0]}">
-                        `;
-                    } else {
-                        for (let i = 0; i < count; i++) {
-                            html += `
-                                <div class="${i>0 ? 'mt-2' : ''}">
-                                    <div class="flex justify-between text-[10px] mb-1">
-                                        <span class="${i===0 ? 'text-green-300' : 'text-green-500'}">RING ${i+1}${i===0 ? ' (OUTER)' : i===count-1 ? ' (INNER)' : ''}</span>
-                                        <span class="text-green-400 rw-val" data-idx="${i}">${state.settings.ringWidths[i]}px</span>
-                                    </div>
-                                    <input type="range" class="w-full rw-slider" data-idx="${i}" min="1" max="80" value="${state.settings.ringWidths[i]}">
+                    for (let i = 0; i < count; i++) {
+                        const w = state.settings.ringWidths[i];
+                        const c = state.settings.ringColors[i] || '#00ff00';
+                        const labelText = count === 1
+                            ? 'BEAM WIDTH'
+                            : `RING ${i+1}${i===0 ? ' (OUTER)' : i===count-1 ? ' (INNER)' : ''}`;
+                        const labelClass = i === 0 ? 'text-green-300' : 'text-green-500';
+                        html += `
+                            <div class="${i>0 ? 'mt-2.5' : ''}">
+                                <div class="flex justify-between text-[10px] mb-1">
+                                    <span class="${labelClass}">${labelText}</span>
+                                    <span class="text-green-400 rw-val" data-idx="${i}">${w}px</span>
                                 </div>
-                            `;
-                        }
+                                <div class="flex items-center gap-2">
+                                    <input type="color" class="rc-picker flex-shrink-0 w-7 h-7 bg-transparent border border-green-800 rounded cursor-pointer p-0" data-idx="${i}" value="${c}" title="Ring ${i+1} color">
+                                    <input type="range" class="w-full rw-slider" data-idx="${i}" min="1" max="80" value="${w}">
+                                </div>
+                            </div>
+                        `;
                     }
                     container.innerHTML = html;
                 });
 
-                // Wire the newly-created sliders on both mobile and desktop
+                // Wire width sliders on both mobile and desktop
                 document.querySelectorAll('.rw-slider').forEach(slider => {
                     slider.addEventListener('input', e => {
                         const idx = parseInt(e.target.dataset.idx);
                         const val = parseInt(e.target.value);
                         state.settings.ringWidths[idx] = val;
-                        // Update all matching value labels (mobile + desktop)
                         document.querySelectorAll(`.rw-val[data-idx="${idx}"]`).forEach(lb => lb.innerText = val+'px');
-                        // Sync sliders across mobile/desktop
                         document.querySelectorAll(`.rw-slider[data-idx="${idx}"]`).forEach(s => { if (s !== e.target) s.value = val; });
                         draw();
+                    });
+                });
+                // Wire color pickers
+                document.querySelectorAll('.rc-picker').forEach(picker => {
+                    picker.addEventListener('input', e => {
+                        const idx = parseInt(e.target.dataset.idx);
+                        const val = e.target.value;
+                        state.settings.ringColors[idx] = val;
+                        // Sync matching pickers (mobile/desktop)
+                        document.querySelectorAll(`.rc-picker[data-idx="${idx}"]`).forEach(p => { if (p !== e.target) p.value = val; });
+                        draw();
+                        if (window._xrpmanReact) window._xrpmanReact('color');
                     });
                 });
             }
@@ -1050,40 +1634,99 @@
             // Expose for ring count change
             window._rebuildRingWidthSliders = rebuildRingWidthSliders;
 
-            // Color pickers
-            ['ringColor','ringColor2','bgColor'].forEach(id => {
+            // Build XM∑M∑ position selector based on ring count
+            function rebuildXmemePos() {
+                const count = state.settings.ringCount;
+                if (typeof state.settings.xmemePos === 'number' && state.settings.xmemePos >= count) {
+                    state.settings.xmemePos = 'outer';
+                }
+                ['xmemePosContainer','xmemePosContainerD','xmemePosContainerQ'].forEach(cid => {
+                    const c = document.getElementById(cid);
+                    if (!c) return;
+                    let html = `<button class="xpos-btn hud-btn py-1.5 text-[8px]" data-pos="outer">OUTER</button>`;
+                    for (let i = 0; i < count; i++) {
+                        html += `<button class="xpos-btn hud-btn py-1.5 text-[8px]" data-pos="${i}">R${i+1}</button>`;
+                    }
+                    c.innerHTML = html;
+                });
+                // Wire and highlight active
+                document.querySelectorAll('.xpos-btn').forEach(btn => {
+                    const val = btn.dataset.pos === 'outer' ? 'outer' : parseInt(btn.dataset.pos);
+                    const isActive = state.settings.xmemePos === val ||
+                                     (btn.dataset.pos === 'outer' && state.settings.xmemePos === 'outer');
+                    btn.classList.toggle('bg-green-900/30', isActive);
+                    btn.addEventListener('click', () => {
+                        state.settings.xmemePos = val;
+                        document.querySelectorAll('.xpos-btn').forEach(b => {
+                            const v = b.dataset.pos === 'outer' ? 'outer' : parseInt(b.dataset.pos);
+                            b.classList.toggle('bg-green-900/30', v === val);
+                        });
+                        draw();
+                        if (window._xrpmanReact) window._xrpmanReact('xmeme-pos');
+                    });
+                });
+            }
+            rebuildXmemePos();
+            window._rebuildXmemePos = rebuildXmemePos;
+
+            // Background color picker (ring colors handled per-ring inside rebuildRingWidthSliders)
+            ['bgColor','bgColorD'].forEach(id => {
                 const el = document.getElementById(id);
-                const elD = document.getElementById(id+'D');
-                const key = id === 'ringColor' ? 'color' : id === 'ringColor2' ? 'color2' : 'bgColor';
-                if (el)  el.addEventListener('input',  e => { state.settings[key] = e.target.value; if(elD) elD.value = e.target.value; draw(); });
-                if (elD) elD.addEventListener('input', e => { state.settings[key] = e.target.value; if(el)  el.value  = e.target.value; draw(); });
+                if (!el) return;
+                el.addEventListener('input', e => {
+                    state.settings.bgColor = e.target.value;
+                    // Sync pair
+                    const pair = document.getElementById(id === 'bgColor' ? 'bgColorD' : 'bgColor');
+                    if (pair) pair.value = e.target.value;
+                    draw();
+                });
             });
 
             // Ring count — mobile and desktop
             function changeRingCount(delta) {
+                const prev = state.settings.ringCount;
                 const n = Math.min(4, Math.max(1, state.settings.ringCount + delta));
                 state.settings.ringCount = n;
                 ['ringCountVal','ringCountValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = n; });
                 if (window._rebuildRingWidthSliders) window._rebuildRingWidthSliders();
+                if (window._rebuildXmemePos) window._rebuildXmemePos();
                 draw();
+                if (window._xrpmanReact) {
+                    if (n !== prev) {
+                        // Special messages for hitting the limits
+                        if (n === 4 && delta > 0) window._xrpmanReact('ring-max');
+                        else if (n === 1 && delta < 0) window._xrpmanReact('ring-min');
+                        else window._xrpmanReact(n > prev ? 'ring-add' : 'ring-sub');
+                    }
+                }
             }
             ['ringCountDown','ringCountDownD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', () => changeRingCount(-1)); });
             ['ringCountUp','ringCountUpD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', () => changeRingCount(1)); });
 
             // Glow mode — mobile (.glow-btn) and desktop (.glow-btn-d)
             function setGlowMode(mode) {
+                const prev = state.settings.glowMode;
                 state.settings.glowMode = mode;
                 document.querySelectorAll('.glow-btn,.glow-btn-d').forEach(b => b.classList.toggle('bg-green-900/30', b.dataset.glow === mode));
                 draw();
+                if (prev !== mode && window._xrpmanReact) {
+                    window._xrpmanReact('glow-' + mode);
+                }
             }
             document.querySelectorAll('.glow-btn,.glow-btn-d').forEach(btn => btn.addEventListener('click', () => setGlowMode(btn.dataset.glow)));
 
             // Background mode
             function setBgMode(mode) {
+                const prev = state.settings.bgMode;
                 state.settings.bgMode = mode;
                 document.querySelectorAll('.bg-btn,.bg-btn-d').forEach(b => b.classList.toggle('bg-green-900/30', b.dataset.bg === mode));
                 ['bgColorPicker','bgColorPickerD'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', mode === 'transparent'); });
                 draw();
+                if (prev !== mode && window._xrpmanReact) {
+                    if (mode === 'transparent') window._xrpmanReact('bg-trans');
+                    else if (mode === 'solid') window._xrpmanReact('bg-solid');
+                    else if (mode === 'gradient') window._xrpmanReact('bg-grad');
+                }
             }
             document.querySelectorAll('.bg-btn,.bg-btn-d').forEach(btn => btn.addEventListener('click', () => setBgMode(btn.dataset.bg)));
 
@@ -1113,24 +1756,25 @@
                     }
                 }
                 draw();
+                if (window._xrpmanReact) window._xrpmanReact(state.settings.xmemeRing ? 'xmeme-on' : 'xmeme-off');
             }
             ['xmemeToggle','xmemeToggleD','xmemeQuickToggle'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', toggleXmeme); });
 
             // Reset
             function doReset() {
-                state.settings = { color:'#00ff00', color2:'#00ff00', width:20, ringWidths:[20,20,20,20], glow:30, zoom:1, ringCount:1, spacing:20, glowMode:'steady', bgMode:'transparent', bgColor:'#000000', xmemeRing:false, xmemeSize:1 };
+                state.settings = { color:'#00ff00', color2:'#00ff00', width:20, ringWidths:[20,20,20,20], ringColors:['#00ff00','#00ff00','#00ff00','#00ff00'], glow:30, zoom:1, ringCount:1, spacing:20, glowMode:'steady', bgMode:'transparent', bgColor:'#000000', xmemeRing:false, xmemeSize:1, xmemePos:'outer' };
                 state.panX = 0; state.panY = 0;
                 ['ringSpacing','ringSpacingD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 20; });
                 ['glowIntensity','glowIntensityD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 30; });
                 ['imageZoom','imageZoomD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 100; });
-                ['xmemeSize','xmemeSizeD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 100; });
+                ['xmemeSize','xmemeSizeD','xmemeSizeQ'].forEach(id => { const el = document.getElementById(id); if(el) el.value = 100; });
                 ['ringColor','ringColorD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '#00ff00'; });
                 ['ringColor2','ringColor2D'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '#00ff00'; });
                 ['bgColor','bgColorD'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '#000000'; });
                 ['spacingVal','spacingValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '20px'; });
                 ['glowVal','glowValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '30%'; });
                 ['zoomVal','zoomValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '100%'; });
-                ['xmemeSizeVal','xmemeSizeValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '1.0x'; });
+                ['xmemeSizeVal','xmemeSizeValD','xmemeSizeValQ'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '1.0x'; });
                 ['ringCountVal','ringCountValD'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = '1'; });
                 setGlowMode('steady'); setBgMode('transparent');
                 ['xmemeToggle','xmemeToggleD'].forEach(id => { const el = document.getElementById(id); if(!el) return; el.dataset.on='false'; el.innerText='OFF'; el.classList.remove('bg-green-900/30'); });
@@ -1139,34 +1783,118 @@
                 const qBtn = document.getElementById('xmemeQuickToggle');
                 if (qBtn) { qBtn.style.background='linear-gradient(135deg, rgba(255,200,60,0.08), rgba(0,255,0,0.06))'; qBtn.style.boxShadow='none'; qBtn.style.color='#ffcc44'; }
                 if (window._rebuildRingWidthSliders) window._rebuildRingWidthSliders();
+                if (window._rebuildXmemePos) window._rebuildXmemePos();
                 draw();
+                if (window._xrpmanReact) window._xrpmanReact('reset');
             }
             ['resetBtn','resetBtnD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', doReset); });
 
             // Export / Share
-            function doExport() { showSaveModal(); }
+            function doExport() {
+                if (window._xrpmanReact) window._xrpmanReact('save-tap');
+                showSaveModal();
+            }
             function doShare() {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 1024; tempCanvas.height = 1024;
-                renderScene(tempCanvas.getContext('2d'), 1024, 1024);
-                const a = document.createElement('a');
-                a.href = tempCanvas.toDataURL('image/png');
-                a.download = 'xmeme_portal.png';
-                a.click();
-                setTimeout(() => window.open('https://twitter.com/intent/tweet?text=%24XMEME+Portal+PFP+%F0%9F%9F%A2+%23XMEME+%23XRPL','_blank'), 600);
+                if (typeof showToast === 'function') showToast('PREPARING', 'Generating PNG for share...');
+                if (window._xrpmanReact) window._xrpmanReact('share');
+                // Use the live canvas directly — at whatever size it's currently set to
+                canvas.toBlob(async blob => {
+                    if (!blob) {
+                        if (typeof showToast === 'function') showToast('SHARE FAILED', 'Could not generate PNG');
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    try {
+                        const file = new File([blob], 'xmeme_portal.png', { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'XMEME Portal PFP',
+                                text: '$XMEME Portal PFP 🟢 #XMEME #XRPL'
+                            });
+                            URL.revokeObjectURL(url);
+                            return;
+                        }
+                    } catch (err) {
+                        if (err.name === 'AbortError') { URL.revokeObjectURL(url); return; }
+                    }
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'xmeme_portal.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    if (typeof showToast === 'function') showToast('DOWNLOADED', 'Opening X compose...');
+                    setTimeout(() => {
+                        window.open('https://twitter.com/intent/tweet?text=%24XMEME+Portal+PFP+%F0%9F%9F%A2+%23XMEME+%23XRPL','_blank');
+                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    }, 600);
+                }, 'image/png');
             }
             ['exportBtn','exportBtnD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', doExport); });
             ['shareXBtn','shareXBtnD'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', doShare); });
 
             document.getElementById('closeModal').addEventListener('click', () => saveModal.classList.add('hidden'));
             saveModal.addEventListener('click', e => { if (e.target === saveModal) saveModal.classList.add('hidden'); });
-            fileNameInput.addEventListener('input', e => { directLink.download = e.target.value.replace(/[^a-z0-9_\-]/gi,'_') + '.png'; });
+            fileNameInput.addEventListener('input', e => {
+                const safeName = e.target.value.replace(/[^a-z0-9_\-]/gi,'_') + '.png';
+                directLink.download = safeName;
+                _lastFilename = safeName;
+            });
+
+            // Ship to Opti handler — fires alongside the download when the checkbox is on
+            directLink.addEventListener('click', async () => {
+                // Ignore clicks while disabled (shouldn't fire anyway, but safety)
+                if (directLink.getAttribute('aria-disabled') === 'true') return;
+                const optiCheck = document.getElementById('shipOptiCheck');
+                if (!optiCheck || !optiCheck.checked) return;
+                if (!_lastBlob) return;
+                const optiStatus = document.getElementById('shipOptiStatus');
+                if (optiStatus) optiStatus.innerText = 'SHIPPING...';
+                const label = _lastMultiplier === 4 ? '4K' : _lastMultiplier === 2 ? '2K' : '1K';
+                const sizeKB = Math.round(_lastBlob.size / 1024);
+                const sizeLabel = sizeKB > 1024 ? (sizeKB/1024).toFixed(1) + 'MB' : sizeKB + 'KB';
+                const result = await window._shipToOpti(_lastBlob, _lastFilename || 'xmeme_portal.png', {
+                    resolution: `${label} (${1024 * _lastMultiplier}px)`,
+                    size: sizeLabel,
+                    from: 'Stone',
+                });
+                if (result.ok) {
+                    if (optiStatus) optiStatus.innerText = 'SHIPPED ✓';
+                    if (typeof showToast === 'function') showToast('SHIPPED TO OPTI', `${_lastFilename} archived`);
+                    if (window._xrpmanReact) window._xrpmanReact('opti');
+                } else {
+                    if (optiStatus) optiStatus.innerText = 'FAILED';
+                    if (typeof showToast === 'function') showToast('OPTI SHIP FAILED', result.reason || 'Unknown error');
+                }
+            });
 
             resBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     resBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    generateHighResOutput(parseInt(btn.dataset.res));
+                    const multiplier = parseInt(btn.dataset.res);
+                    lastChosenMultiplier = multiplier; // remember across modal opens
+                    const label = multiplier === 4 ? '4K' : multiplier === 2 ? '2K' : '1K';
+                    // Always react to the resolution pick — even outside the modal.
+                    // Stone should hear xrpman comment when he picks 4K anywhere.
+                    if (window._xrpmanReact) {
+                        window._xrpmanReact('res-' + label.toLowerCase());
+                    }
+                    // Only fire the render + toasts when the save modal is actually open.
+                    // Outside the modal these buttons just remember the choice silently.
+                    const modalIsOpen = !saveModal.classList.contains('hidden');
+                    if (!modalIsOpen) return;
+                    try {
+                        const result = await generateHighResOutput(multiplier);
+                        if (multiplier > 1 && state.history.length > 0) {
+                            state.history[0].dataUrl = result.url;
+                        }
+                        if (typeof showToast === 'function') {
+                            showToast('READY', `${label} · ${Math.round(result.size/1024)}KB`);
+                        }
+                        if (window._xrpmanReact) window._xrpmanReact('save');
+                    } catch (err) { /* already reported */ }
                 });
             });
 
@@ -1189,6 +1917,7 @@
                     presets[activePresetSlot] = JSON.parse(JSON.stringify(state.settings));
                     updatePresetBtns();
                     showToast('PRESET SAVED', `Slot ${activePresetSlot+1} locked in.`);
+                    if (window._xrpmanReact) window._xrpmanReact('preset');
                 });
             });
             ['presetLoad','presetLoadD'].forEach(id => {
@@ -1203,6 +1932,12 @@
                     } else {
                         state.settings.ringWidths = state.settings.ringWidths.slice();
                     }
+                    // Same for ringColors
+                    if (!Array.isArray(state.settings.ringColors)) {
+                        state.settings.ringColors = ['#00ff00','#00ff00','#00ff00','#00ff00'];
+                    } else {
+                        state.settings.ringColors = state.settings.ringColors.slice();
+                    }
                     // Sync all UI
                     ['ringSpacing','ringSpacingD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=p.spacing; });
                     ['glowIntensity','glowIntensityD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.value=p.glow; });
@@ -1212,8 +1947,10 @@
                     ['ringCountVal','ringCountValD'].forEach(id2 => { const e2=document.getElementById(id2); if(e2) e2.innerText=p.ringCount; });
                     setGlowMode(p.glowMode); setBgMode(p.bgMode);
                     if (window._rebuildRingWidthSliders) window._rebuildRingWidthSliders();
+                    if (window._rebuildXmemePos) window._rebuildXmemePos();
                     draw();
                     showToast('PRESET LOADED', `Slot ${activePresetSlot+1} restored.`);
+                    if (window._xrpmanReact) window._xrpmanReact('preset-load');
                 });
             });
             updatePresetBtns();
@@ -1272,6 +2009,7 @@
                 const img = new Image();
                 img.onload = () => {
                     state.image = img;
+                    state.imageDataUrl = ev.target.result; // Keep original for history persistence
                     state.panX = 0; state.panY = 0;
                     const baseScale = Math.max(1024 / img.width, 1024 / img.height);
                     inputs.zoom.min = Math.max(5, Math.round((0.20 / baseScale) * 100));
@@ -1279,6 +2017,7 @@
                     inputs.zoom.value = 100; state.settings.zoom = 1;
                     labels.zoom.innerText = '100%';
                     draw();
+                    if (window._xrpmanReact) window._xrpmanReact('upload');
                 };
                 img.src = ev.target.result;
             };
@@ -1355,11 +2094,16 @@
             }
 
             // Rings — iterate outer to inner using precomputed radii and per-ring widths
+            // Skip any ring that the XM∑M∑ text is positioned on (so text isn't hidden behind it)
+            const hideRingIdx = (xmemeRing && typeof state.settings.xmemePos === 'number') ? state.settings.xmemePos : -1;
+            const ringColors = state.settings.ringColors || [];
             context.lineCap = 'round';
             for (let i = 0; i < ringCount; i++) {
+                if (i === hideRingIdx) continue; // XM∑M∑ takes this ring's spot
                 const ringRadius = radii[i];
                 const rSWidth    = (ringWidths[i] || 20) * k;
-                const ringColor  = i % 2 === 0 ? color : color2;
+                // Per-ring color wins if set; else fall back to alternating color/color2
+                const ringColor  = ringColors[i] || (i % 2 === 0 ? color : color2);
                 context.save();
                 context.beginPath();
                 context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
@@ -1377,10 +2121,19 @@
                 context.restore();
             }
 
-            // XM∑M∑ text ring — tightly packed, sigmas drawn smaller, user-adjustable size
+            // XM∑M∑ text ring — tightly packed, sigmas drawn smaller, positionable
             if (xmemeRing) {
                 const xmemeScale = state.settings.xmemeSize || 1;
-                const textRadius = outerRadius + outerWidth * 0.5 + (18 * k) + (xmemeScale > 1 ? (xmemeScale - 1) * 10 * k : 0);
+                const pos = state.settings.xmemePos;
+                let textRadius;
+                if (pos === 'outer' || typeof pos !== 'number') {
+                    // Default: beyond the outermost ring
+                    textRadius = outerRadius + outerWidth * 0.5 + (18 * k) + (xmemeScale > 1 ? (xmemeScale - 1) * 10 * k : 0);
+                } else {
+                    // On a specific ring — use that ring's radius as the text centerline
+                    const safeIdx = Math.min(Math.max(0, pos), radii.length - 1);
+                    textRadius = radii[safeIdx];
+                }
                 const circumference = 2 * Math.PI * textRadius;
                 const fontSize   = Math.max(8, 11 * k * xmemeScale);
                 const sigmaSize  = fontSize * 0.72; // sigmas slightly smaller
@@ -1448,55 +2201,336 @@
         }
 
         // --- Export ---
+        // Same pattern as old working XMEME generator: resize the LIVE canvas to
+        // target resolution, redraw once, then toBlob directly on that canvas.
+        // No temp canvas, no double-render, no memory spike.
+        let _lastBlobUrl = null;
+        let _lastBlob = null;        // keep blob reference for opt-in Opti ship
+        let _lastFilename = null;    // keep intended filename for Opti ship
+        let _lastMultiplier = 1;
         function generateHighResOutput(multiplier) {
             const size = 1024 * multiplier;
             const spinner   = document.getElementById('renderSpinner');
             const renderLbl = document.getElementById('renderLabel');
-            // Show spinner for 2K and 4K
-            if (multiplier > 1 && spinner) {
-                spinner.classList.remove('hidden');
-                renderLbl.innerText = `RENDERING ${size}px...`;
+            const renderSub = document.getElementById('renderSubLabel');
+            // Disable the download button during render
+            if (directLink) {
+                directLink.classList.add('opacity-40', 'pointer-events-none');
+                directLink.setAttribute('aria-disabled', 'true');
+                directLink.removeAttribute('href');
+                const label = multiplier === 4 ? '4K' : multiplier === 2 ? '2K' : '1K';
+                directLink.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2 opacity-70"></i>PREPARING ${label}...`;
             }
-            // Defer to next tick so spinner paints before heavy render
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = size; tempCanvas.height = size;
-                    renderScene(tempCanvas.getContext('2d'), size, size);
-                    const dataUrl = tempCanvas.toDataURL('image/png');
-                    finalImage.src  = dataUrl;
-                    directLink.href = dataUrl;
-                    if (spinner) spinner.classList.add('hidden');
-                    resolve(dataUrl);
-                }, multiplier > 1 ? 80 : 0);
+            if (spinner) {
+                spinner.classList.remove('hidden');
+                if (renderLbl) renderLbl.innerText = `RENDERING ${size}px`;
+                if (renderSub) {
+                    renderSub.innerText = multiplier >= 4 ? 'HIGH-RES · PLEASE WAIT'
+                                        : multiplier >= 2 ? 'UPSCALING IMAGE'
+                                        : 'GENERATING OUTPUT';
+                }
+            }
+
+            return new Promise((resolve, reject) => {
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        try {
+                            // Remember original size so we can restore it after export
+                            const originalW = canvas.width;
+                            const originalH = canvas.height;
+
+                            // Resize the actual live canvas to target export size.
+                            // This is what the old working code did — it draws at the
+                            // target resolution directly instead of allocating a second
+                            // canvas in memory. CSS keeps the displayed size the same.
+                            canvas.width  = size;
+                            canvas.height = size;
+                            renderScene(canvas.getContext('2d'), size, size);
+
+                            // toBlob streams to a Blob — no memory-killing base64 string
+                            canvas.toBlob(blob => {
+                                if (!blob) {
+                                    const err = new Error(`Canvas export returned null at ${size}px — device memory limit`);
+                                    if (spinner) spinner.classList.add('hidden');
+                                    // Restore canvas for continued use
+                                    canvas.width = originalW; canvas.height = originalH;
+                                    renderScene(canvas.getContext('2d'), originalW, originalH);
+                                    if (window._sysLog) window._sysLog(err.message, 'error');
+                                    if (typeof showToast === 'function') showToast('EXPORT FAILED', err.message);
+                                    reject(err);
+                                    return;
+                                }
+
+                                // Revoke previous blob URL to free memory
+                                if (_lastBlobUrl) {
+                                    try { URL.revokeObjectURL(_lastBlobUrl); } catch(e) {}
+                                }
+                                const blobUrl = URL.createObjectURL(blob);
+                                _lastBlobUrl = blobUrl;
+                                _lastBlob = blob;             // stash for Opti ship
+                                _lastMultiplier = multiplier;  // stash resolution label
+
+                                finalImage.src  = blobUrl;
+                                directLink.href = blobUrl;
+                                // Enable download button now that file is ready
+                                directLink.classList.remove('opacity-40', 'pointer-events-none');
+                                directLink.setAttribute('aria-disabled', 'false');
+                                const sizeKB = Math.round(blob.size/1024);
+                                const sizeLabel = sizeKB > 1024 ? (sizeKB/1024).toFixed(1) + 'MB' : sizeKB + 'KB';
+                                directLink.innerHTML = `<i class="fa-solid fa-download mr-2"></i>DOWNLOAD · ${sizeLabel}`;
+
+                                const hideSpinner = () => { if (spinner) spinner.classList.add('hidden'); };
+                                if (finalImage.complete && finalImage.naturalWidth > 0) {
+                                    hideSpinner();
+                                } else {
+                                    finalImage.onload = hideSpinner;
+                                    setTimeout(hideSpinner, 500);
+                                }
+
+                                if (window._sysLog) window._sysLog(`Generated ${size}x${size} PNG (${Math.round(blob.size/1024)}KB)`);
+
+                                // Restore live canvas to its default size for the preview
+                                // (so the user can continue editing at normal resolution)
+                                canvas.width = originalW;
+                                canvas.height = originalH;
+                                renderScene(canvas.getContext('2d'), originalW, originalH);
+
+                                resolve({ blob, url: blobUrl, size: blob.size });
+                            }, 'image/png');
+                        } catch (err) {
+                            if (spinner) spinner.classList.add('hidden');
+                            if (window._sysLog) window._sysLog(`Render failed: ${err.message}`, 'error');
+                            if (typeof showToast === 'function') showToast('RENDER FAILED', err.message);
+                            reject(err);
+                        }
+                    }, multiplier >= 4 ? 150 : multiplier >= 2 ? 80 : 30);
+                });
             });
         }
 
-        function addToHistory(dataUrl, name) {
-            state.history.unshift({ dataUrl, name });
-            if (state.history.length > 5) state.history.pop();
-            const html = state.history.map(h => `
-                <a href="${h.dataUrl}" download="${h.name}.png" title="${h.name}"
-                   class="block border border-green-900 hover:border-green-500 transition-colors">
-                    <img src="${h.dataUrl}" class="w-full aspect-square object-cover opacity-80 hover:opacity-100">
-                </a>
-            `).join('');
+        // --- History system (persistent, re-renderable) ---
+        const HISTORY_KEY = 'xmeme_portal_history_v1';
+        const HISTORY_MAX = 6;
+
+        function loadHistoryFromStorage() {
+            try {
+                const raw = localStorage.getItem(HISTORY_KEY);
+                if (!raw) return [];
+                return JSON.parse(raw) || [];
+            } catch (e) { return []; }
+        }
+
+        function saveHistoryToStorage(history) {
+            try {
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            } catch (e) {
+                // Storage full — drop oldest and retry once
+                if (history.length > 1) {
+                    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, history.length - 1))); } catch(e2) {}
+                }
+            }
+        }
+
+        function addToHistory(thumbnailUrl, name) {
+            // Save the full config + source image so we can re-render at any resolution
+            const entry = {
+                name,
+                thumbnail: thumbnailUrl, // blob URL for current session preview
+                imageDataUrl: state.imageDataUrl || null, // base64 source image
+                settings: JSON.parse(JSON.stringify(state.settings)),
+                panX: state.panX,
+                panY: state.panY,
+                timestamp: Date.now(),
+            };
+            state.history.unshift(entry);
+            if (state.history.length > HISTORY_MAX) state.history.pop();
+            // Also capture a low-res thumbnail as base64 so it survives page reloads
+            try {
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 128; thumbCanvas.height = 128;
+                renderScene(thumbCanvas.getContext('2d'), 128, 128);
+                entry.thumbnailDataUrl = thumbCanvas.toDataURL('image/png');
+                thumbCanvas.width = thumbCanvas.height = 0;
+            } catch(e) {}
+            saveHistoryToStorage(state.history);
+            renderHistoryGrid();
+        }
+
+        function renderHistoryGrid() {
+            if (!state.history || state.history.length === 0) {
+                const empty = '<div class="col-span-5 text-[9px] text-green-900 text-center py-2">NO EXPORTS YET</div>';
+                ['historyGrid','historyGridD'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = empty;
+                });
+                return;
+            }
+            const html = state.history.map((h, i) => {
+                const src = h.thumbnailDataUrl || h.thumbnail || '';
+                return `
+                    <button class="history-item block border border-green-900 hover:border-green-500 transition-colors p-0 bg-transparent relative group"
+                            data-idx="${i}" style="touch-action:manipulation;">
+                        <img src="${src}" class="w-full aspect-square object-cover opacity-80 group-hover:opacity-100" alt="${h.name}">
+                        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/60 flex items-center justify-center transition-opacity">
+                            <span class="text-[7px] text-green-400 font-bold tracking-widest">OPEN</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
             ['historyGrid','historyGridD'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.innerHTML = html;
+                if (el) {
+                    el.innerHTML = html;
+                    el.querySelectorAll('.history-item').forEach(btn => {
+                        btn.addEventListener('click', () => openHistoryEntry(parseInt(btn.dataset.idx)));
+                    });
+                }
             });
         }
 
+        function openHistoryEntry(idx) {
+            const entry = state.history[idx];
+            if (!entry) return;
+            if (!entry.imageDataUrl) {
+                if (typeof showToast === 'function') showToast('CANNOT REOPEN', 'This entry has no source image');
+                return;
+            }
+            // Open the history viewer modal
+            const viewer    = document.getElementById('historyViewer');
+            const viewImg   = document.getElementById('historyViewImage');
+            const viewName  = document.getElementById('historyViewName');
+            const viewDate  = document.getElementById('historyViewDate');
+            const viewSpin  = document.getElementById('historyViewSpinner');
+            viewName.innerText = entry.name || 'xmeme_portal';
+            viewDate.innerText = new Date(entry.timestamp).toLocaleString();
+            viewImg.src = entry.thumbnailDataUrl || entry.thumbnail || '';
+            viewSpin.classList.add('hidden');
+            viewer.classList.remove('hidden');
+            // Store active idx for the download buttons
+            viewer.dataset.idx = idx;
+            if (window._xrpmanReact) window._xrpmanReact('history');
+        }
+
+        // Render entry at chosen resolution and download it
+        async function downloadHistoryAt(idx, multiplier) {
+            const entry = state.history[idx];
+            if (!entry || !entry.imageDataUrl) return;
+
+            const viewSpin = document.getElementById('historyViewSpinner');
+            const viewSpinLabel = document.getElementById('historyViewSpinLabel');
+            const size = 1024 * multiplier;
+            const label = multiplier === 4 ? '4K' : multiplier === 2 ? '2K' : '1K';
+
+            viewSpin.classList.remove('hidden');
+            if (viewSpinLabel) viewSpinLabel.innerText = `RENDERING ${size}px`;
+            if (typeof showToast === 'function') showToast('RE-RENDERING', `Generating ${label}...`);
+
+            // Load the source image
+            const img = new Image();
+            img.onload = () => {
+                // Save current state, swap to entry state, render, restore
+                const saved = {
+                    image: state.image,
+                    imageDataUrl: state.imageDataUrl,
+                    panX: state.panX,
+                    panY: state.panY,
+                    settings: JSON.parse(JSON.stringify(state.settings)),
+                    canvasW: canvas.width,
+                    canvasH: canvas.height,
+                };
+                state.image = img;
+                state.imageDataUrl = entry.imageDataUrl;
+                state.panX = entry.panX;
+                state.panY = entry.panY;
+                Object.assign(state.settings, entry.settings);
+                // Resize live canvas, render, export
+                requestAnimationFrame(() => setTimeout(() => {
+                    try {
+                        canvas.width = size; canvas.height = size;
+                        renderScene(canvas.getContext('2d'), size, size);
+                        canvas.toBlob(blob => {
+                            if (!blob) {
+                                if (typeof showToast === 'function') showToast('EXPORT FAILED', `${label} too large for device`);
+                                viewSpin.classList.add('hidden');
+                                // restore
+                                state.image = saved.image; state.imageDataUrl = saved.imageDataUrl;
+                                state.panX = saved.panX; state.panY = saved.panY;
+                                Object.assign(state.settings, saved.settings);
+                                canvas.width = saved.canvasW; canvas.height = saved.canvasH;
+                                renderScene(canvas.getContext('2d'), saved.canvasW, saved.canvasH);
+                                return;
+                            }
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${entry.name}_${label}.png`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            setTimeout(() => URL.revokeObjectURL(url), 5000);
+                            if (typeof showToast === 'function') showToast('DOWNLOADED', `${label} · ${Math.round(blob.size/1024)}KB`);
+                            viewSpin.classList.add('hidden');
+                            // restore original state + preview
+                            state.image = saved.image; state.imageDataUrl = saved.imageDataUrl;
+                            state.panX = saved.panX; state.panY = saved.panY;
+                            Object.assign(state.settings, saved.settings);
+                            canvas.width = saved.canvasW; canvas.height = saved.canvasH;
+                            renderScene(canvas.getContext('2d'), saved.canvasW, saved.canvasH);
+                        }, 'image/png');
+                    } catch (err) {
+                        viewSpin.classList.add('hidden');
+                        if (typeof showToast === 'function') showToast('EXPORT FAILED', err.message);
+                    }
+                }, 50));
+            };
+            img.onerror = () => {
+                viewSpin.classList.add('hidden');
+                if (typeof showToast === 'function') showToast('LOAD FAILED', 'Could not load source image');
+            };
+            img.src = entry.imageDataUrl;
+        }
+
+        function clearHistory() {
+            if (!confirm('Clear all saved exports?')) return;
+            state.history = [];
+            saveHistoryToStorage([]);
+            renderHistoryGrid();
+            if (typeof showToast === 'function') showToast('CLEARED', 'History wiped');
+        }
+
+        // Track user's last chosen export resolution across tab/modal opens
+        let lastChosenMultiplier = 1;
+
         async function showSaveModal() {
-            resBtns.forEach(b => b.classList.remove('active'));
-            resBtns[0].classList.add('active');
+            const multiplier = lastChosenMultiplier;
+            const label = multiplier === 4 ? '4K' : multiplier === 2 ? '2K' : '1K';
+
+            // Sync the active button to whatever resolution was last chosen
+            resBtns.forEach(b => {
+                b.classList.toggle('active', parseInt(b.dataset.res) === multiplier);
+            });
+
             const timestamp = Math.floor(Date.now() / 1000).toString().slice(-5);
             const uniqueName = `xmeme_portal_${timestamp}`;
             fileNameInput.value = uniqueName;
             directLink.download = `${uniqueName}.png`;
+            _lastFilename = `${uniqueName}.png`;
+            // Reset the SHIP TO OPTI checkbox + status each time modal opens
+            const optiCheck = document.getElementById('shipOptiCheck');
+            const optiStatus = document.getElementById('shipOptiStatus');
+            if (optiCheck) optiCheck.checked = false;
+            if (optiStatus) optiStatus.innerText = '';
+            // Clear old image so stale content doesn't flash
+            finalImage.src = '';
             saveModal.classList.remove('hidden');
-            const dataUrl = await generateHighResOutput(1);
-            addToHistory(dataUrl, uniqueName);
+            try {
+                const result = await generateHighResOutput(multiplier);
+                addToHistory(result.url, uniqueName);
+                if (typeof showToast === 'function') showToast('READY', `${label} · ${Math.round(result.size/1024)}KB`);
+                if (window._xrpmanReact) window._xrpmanReact('save');
+            } catch (err) {
+                if (typeof showToast === 'function') showToast('EXPORT FAILED', err.message || 'Unknown error');
+            }
         }
 
         // Start
@@ -1533,29 +2567,453 @@
         window.addEventListener('error', e => sysLog(`ERR: ${e.message} (${e.filename?.split('/').pop()}:${e.lineno})`, 'error'));
         window.addEventListener('unhandledrejection', e => sysLog(`PROMISE: ${e.reason}`, 'error'));
         sysLog('System initialized. Portal online.');
+        // Time-aware greeting header — "GOOD MORNING", "WELCOME BACK" etc.
+        const gh = document.getElementById('greeterHeader');
+        if (gh) {
+            const h = new Date().getHours();
+            let greeting;
+            if (h >= 5 && h < 12)       greeting = 'GOOD MORNING, COMMANDER';
+            else if (h >= 12 && h < 17) greeting = 'GOOD AFTERNOON, COMMANDER';
+            else if (h >= 17 && h < 22) greeting = 'GOOD EVENING, COMMANDER';
+            else                         greeting = 'WELCOME BACK, COMMANDER';
+            gh.innerText = greeting;
+        }
     })();
     document.getElementById('greeterClose').addEventListener('click', () => {
         const modal = document.getElementById('greeterModal');
         modal.style.transition = 'opacity 0.4s ease';
         modal.style.opacity = '0';
         setTimeout(() => modal.remove(), 400);
-        // Start toast sequence after greeting closes
-        setTimeout(startToastSequence, 800);
+        // Kick off the XRPMAN assistant strip right after greeting closes
+        setTimeout(startXrpmanAssistant, 600);
     });
 
-    // ── Toast System ──
-    const TOASTS = [
-        { label: 'PORTAL STATUS', msg: 'XM∑M∑ energy levels nominal. All portal rings calibrated and ready for deployment.' },
-        { label: 'COMMANDER STONE', msg: 'Your portals are legendary on XRPL. The green glow is recognized across the network.' },
-        { label: 'COLOR INTEL', msg: '#00FF00 — pure maximum green. No other color hits harder. Science agrees.' },
-        { label: 'XM∑M∑ SIGNAL', msg: 'The XM∑M∑ community is growing. Every portal generated strengthens the signal.' },
-        { label: 'PRO TIP', msg: 'Try 3 rings with PULSE mode and the XM∑M∑ ring enabled. Pure power.' },
-        { label: 'XRPL NETWORK', msg: 'XRPL moves fast. Your portal moves faster. Stay ahead of the chain.' },
-        { label: 'STONE FACT', msg: 'Stone doesn\'t crack under pressure. Neither do portals built by Stone.' },
-        { label: 'ENERGY READING', msg: 'Radiation glow at full power. The green is bleeding through dimensions.' },
-        { label: 'XM∑M∑ DISPATCH', msg: 'Sigma energy detected. XM∑M∑ is not a meme — it\'s a movement.' },
-        { label: 'PORTAL LORE', msg: 'Every great commander needs a portal. Every great portal needs Stone.' },
+    // ═══════════════════════════════════════════════════════════════════════
+    //   XRPMAN ASSISTANT — inline helper strip with a large rotating database
+    // ═══════════════════════════════════════════════════════════════════════
+    // Lives in the #xrpmanStrip element under the XM∑M∑ panel. Rotates through
+    // a big pool of positive, funny, XMEME-flavored messages. Time-aware greetings
+    // on boot and periodically. User can tap the forward arrow to skip.
+
+    // Time-of-day greetings — different pools for different hours
+    const XRPMAN_GREETINGS_MORNING = [
+        "Good morning, Commander Stone. Coffee activated. Portal armed.",
+        "Rise and grind, Stone. Let's make something wicked today.",
+        "Morning, Commander. The green is strong today.",
+        "Good morning. Sun's up, portals open.",
+        "Stone. You made it. The XM∑M∑ network missed you.",
+        "Good morning, Commander. Neon levels: maximum.",
+        "Morning broadcast: today's vibe is UNSTOPPABLE.",
+        "Welcome back, Stone. I've been keeping the portal warm.",
     ];
+    const XRPMAN_GREETINGS_AFTERNOON = [
+        "Good afternoon, Commander Stone. Ready to build?",
+        "Afternoon, Stone. Let's flex some pixels.",
+        "Good afternoon. The portal is open for business.",
+        "Midday salute, Commander. Let's get to work.",
+        "Afternoon, Stone. XM∑M∑ energy at full charge.",
+        "Back online, Commander. What are we making today?",
+    ];
+    const XRPMAN_GREETINGS_EVENING = [
+        "Good evening, Commander Stone. The neon glows brightest at night.",
+        "Evening, Stone. Prime portal hours.",
+        "Good evening. The timeline is waiting for your next drop.",
+        "Welcome, Commander. Night mode: XM∑M∑.",
+        "Evening broadcast activated. Let's make some art.",
+        "Good evening, Stone. Portals hit different after dark.",
+    ];
+    const XRPMAN_GREETINGS_LATENIGHT = [
+        "Late night session, Commander? Respect.",
+        "3 AM build session. I see you, Stone.",
+        "The portal never sleeps. Neither do we, apparently.",
+        "Midnight mode engaged. XM∑M∑ stays lit.",
+        "Late night Commander. The best ideas come after midnight.",
+        "You're up late, Stone. The portal approves.",
+    ];
+
+    // Encouragement & positivity — the bread and butter
+    const XRPMAN_POSITIVE = [
+        "Make good choices, Commander.",
+        "Your PFP is looking SHARP.",
+        "Keep going, Stone. This is the way.",
+        "You're doing great. The portal sees you.",
+        "Trust the process. Trust the ring.",
+        "Green is your color, Commander.",
+        "Big moves today. I can feel it.",
+        "The vibes are immaculate.",
+        "You've got this, Stone.",
+        "Stay steady, Commander. Stay green.",
+        "One portal at a time. That's the secret.",
+        "Every ring counts.",
+        "You chose wisely with that color.",
+        "Quality work, Commander. Quality work.",
+        "Keep shipping, Stone. Keep shipping.",
+        "The world needs more green circles. You're doing important work.",
+        "I believe in you. The ring believes in you.",
+        "Small wins stack up. Keep stacking.",
+        "You're building something real here.",
+        "Momentum is your superpower.",
+    ];
+
+    // Portal / XMEME flavor — thematic ambiance
+    const XRPMAN_FLAVOR = [
+        "Portal stabilized. Ring integrity: 100%.",
+        "XM∑M∑ frequency: ONLINE.",
+        "Detecting strong neon signal.",
+        "The XRPL approves of your artistry.",
+        "Ring alignment: perfect.",
+        "Portal resonance at optimal levels.",
+        "Beam width looking crispy, Commander.",
+        "XM∑M∑ network status: LIT.",
+        "Quantum portal synced to your aesthetic.",
+        "Subspace uplink stable.",
+        "Neural network says: this one's a banger.",
+        "Green energy levels: off the charts.",
+        "Portal memory: archiving your greatness.",
+        "Rendering reality, one pixel at a time.",
+        "The grid is alive tonight.",
+    ];
+
+    // Tips — actually useful nudges
+    const XRPMAN_TIPS = [
+        "Tip: tap a ring number in XM∑M∑ POSITION to wrap text around that ring.",
+        "Tip: per-ring widths let you stack hair-thin inner rings with a chunky outer.",
+        "Tip: save your favorite configs to slots 1-3 under the MORE tab.",
+        "Tip: long-press the preview on mobile to save straight to Photos.",
+        "Tip: pinch to zoom your PFP inside the portal.",
+        "Tip: 4K exports work great on iOS and Android now.",
+        "Tip: your export history survives page reloads. Tap any thumbnail.",
+        "Tip: set glow to PULSE for that living-portal feel.",
+        "Tip: FLICKER glow makes it feel like old neon signage.",
+        "Tip: drag the preview to pan your image inside the circle.",
+        "Tip: transparent background lets you stack rings over any app.",
+        "Tip: gradient background adds depth without stealing focus.",
+    ];
+
+    // Playful / self-aware
+    const XRPMAN_PLAYFUL = [
+        "I have many things to say. I will say them.",
+        "Yes, that's me. xrpman. The helper.",
+        "I speak fluent XM∑M∑.",
+        "The little astronaut is powered by good vibes.",
+        "I don't sleep. I just wait for the next portal.",
+        "Between us, your taste is elite.",
+        "I rate this design: absolutely unhinged. (Good.)",
+        "Nobody's watching. Go bold.",
+        "Pro mode: engage.",
+        "You and me, Stone. Cooking up portals.",
+        "I've been watching. Impressive work.",
+        "Just the two of us making green circles look cool.",
+        "The portal chose you back.",
+        "Still here. Still vibing.",
+        "Your ring game is unmatched.",
+    ];
+
+    // Combine all non-greeting pools
+    function buildXrpmanPool() {
+        return [
+            ...XRPMAN_POSITIVE,
+            ...XRPMAN_POSITIVE,         // weight positive messages higher
+            ...XRPMAN_FLAVOR,
+            ...XRPMAN_TIPS,
+            ...XRPMAN_PLAYFUL,
+        ];
+    }
+
+    function getGreetingForTimeOfDay() {
+        const hour = new Date().getHours();
+        let pool;
+        if (hour >= 5 && hour < 12) pool = XRPMAN_GREETINGS_MORNING;
+        else if (hour >= 12 && hour < 17) pool = XRPMAN_GREETINGS_AFTERNOON;
+        else if (hour >= 17 && hour < 22) pool = XRPMAN_GREETINGS_EVENING;
+        else pool = XRPMAN_GREETINGS_LATENIGHT;
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function shuffleArray(arr) {
+        const out = arr.slice();
+        for (let i = out.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [out[i], out[j]] = [out[j], out[i]];
+        }
+        return out;
+    }
+
+    let _xrpmanPool = [];
+    let _xrpmanIndex = 0;
+    let _xrpmanTimer = null;
+
+    function showXrpmanLine(text) {
+        const el = document.getElementById('xrpmanText');
+        if (!el) return;
+        // Fade out then in
+        el.style.transition = 'opacity 0.25s';
+        el.style.opacity = '0';
+        setTimeout(() => {
+            el.innerText = text;
+            el.style.opacity = '1';
+        }, 250);
+    }
+
+    function nextXrpmanMessage() {
+        if (_xrpmanPool.length === 0 || _xrpmanIndex >= _xrpmanPool.length) {
+            _xrpmanPool = shuffleArray(buildXrpmanPool());
+            _xrpmanIndex = 0;
+        }
+        const msg = _xrpmanPool[_xrpmanIndex];
+        _xrpmanIndex++;
+        showXrpmanLine(msg);
+    }
+
+    function startXrpmanAssistant() {
+        // Opening message: time-of-day greeting
+        showXrpmanLine(getGreetingForTimeOfDay());
+        _xrpmanPool = shuffleArray(buildXrpmanPool());
+        _xrpmanIndex = 0;
+        // Rotate every 10 seconds
+        if (_xrpmanTimer) clearInterval(_xrpmanTimer);
+        _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+        // Wire the "next" button to skip to next message
+        const nextBtn = document.getElementById('xrpmanNext');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                nextXrpmanMessage();
+                // Reset timer so user isn't rushed into another auto-cycle
+                if (_xrpmanTimer) clearInterval(_xrpmanTimer);
+                _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+            });
+        }
+        // Periodic greeting refresh — every 10 minutes, inject a greeting
+        setInterval(() => {
+            showXrpmanLine(getGreetingForTimeOfDay());
+            // Reset rotation timer
+            if (_xrpmanTimer) clearInterval(_xrpmanTimer);
+            _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+        }, 600000);
+    }
+
+    // Expose a reactive helper so main app code can ping xrpman on user actions.
+    // Call with a key like 'upload', 'save', 'xmeme-on', 'ring-added' etc.
+    const XRPMAN_REACTIONS = {
+        upload:      ['Image received. Looking good, Commander.', 'PFP acquired. Target locked.', 'Upload complete. Now make it legendary.', 'Nice pick, Stone.'],
+        save:        ['Saved. Your file is ready.', 'Export complete. Ship it.', 'File dispatched. Nice work, Stone.', 'Beautiful render, Commander.'],
+        'save-tap':  ['Firing up the render engine.', 'Preparing export...', 'Spooling up, Commander.', 'Here we go, Stone.'],
+        'xmeme-on':  ['XM∑M∑ ring engaged.', 'Broadcasting XM∑M∑ frequency.', 'Text ring: online.', 'Branding locked in.'],
+        'xmeme-off': ['XM∑M∑ ring standing down.', 'Text ring off. Minimalism mode.', 'Clean look. Respect.'],
+        'ring-add':  ['Another ring. I like your style.', 'Ring stack growing. Bold choice.', 'Maximum portal energy.', 'Stacking the circles, Commander.'],
+        'ring-sub':  ['Ring removed. Clean lines.', 'Simplifying. Smart.', 'Less is more, Stone.'],
+        'color':     ['Color locked in.', 'That shade hits different.', 'Palette approved.', 'Nice hue, Commander.', 'Bold color call.'],
+        'preset':    ['Preset stored. Your style, archived.', 'Configuration saved to slot.', 'Got it, Commander. Preset saved.'],
+        'preset-load':['Preset loaded. Looking sharp.', 'Configuration restored.', 'Welcome back to that setup.'],
+        'history':   ['Loading from the vault...', 'Pulling your saved export.', 'Opening the archive.'],
+        'history-clear': ['History wiped. Fresh start.', 'Archive cleared, Commander.'],
+        'opti':      ['Shipped to Opti. Good looks, Commander.', 'Archive updated. Opti has eyes on.', 'Opti received your drop. Filed away.', 'Portal delivered to the archive. Nice.'],
+        // Resolution picks
+        'res-1k':    ['1K locked. Fast and clean.', 'Standard resolution. Perfect for X.', '1K mode — quick drops.', 'Classic size. Nice pick.'],
+        'res-2k':    ['2K mode. Bumping the quality.', 'Two thousand pixels. Clean.', '2K export queued. Looking crisp.', 'Stepping it up, Commander.'],
+        'res-4k':    ['4K selected. Maximum detail.', 'Going full resolution. Respect.', '4K mode — pixel perfect.', 'Four K. You\'re not playing around.', 'Ultra mode engaged.'],
+        // Ring count range
+        'ring-max':  ['Max rings reached. Four-ring fortress.', 'Full stack, Commander. Can\'t go higher.'],
+        'ring-min':  ['Single ring. Classic.', 'One ring to rule them all.'],
+        // Glow modes
+        'glow-steady':  ['Steady glow. Stable and clean.', 'Glow mode: STEADY. Professional.'],
+        'glow-pulse':   ['Pulse glow. Now it\'s alive.', 'Breathing portal. I love it.', 'Pulse mode — the portal has a heartbeat.'],
+        'glow-flicker': ['Flicker mode. Old neon sign vibes.', 'Flickering. Retro and gritty.', 'Neon flicker engaged.'],
+        'glow-none':    ['Glow off. Flat and graphic.', 'No glow. Pure geometry.'],
+        // Background modes
+        'bg-trans':  ['Transparent background. Ready to drop anywhere.', 'Alpha channel engaged.'],
+        'bg-solid':  ['Solid background locked.', 'Color fill applied.'],
+        'bg-grad':   ['Gradient background. Nice depth.', 'Radial gradient — atmospheric.'],
+        // XMEME position
+        'xmeme-pos': ['Text position updated.', 'XM∑M∑ relocated.', 'New wrap configuration.'],
+        // Reset
+        'reset':     ['Everything reset. Fresh canvas, Commander.', 'Clean slate. Start strong.'],
+        // Image clear
+        'clear':     ['Image removed. Ready for next.', 'Canvas cleared, Commander.'],
+        // Share
+        'share':     ['Sharing to X. Let the world see it.', 'Deploying to the timeline.', 'X share initiated.'],
+        // Pan/zoom
+        'zoom':      ['Nice framing, Commander.', 'Zoom dialed in.', 'Looking good at that size.'],
+    };
+    window._xrpmanReact = function(key) {
+        const pool = XRPMAN_REACTIONS[key];
+        if (!pool || !pool.length) return;
+        const msg = pool[Math.floor(Math.random() * pool.length)];
+        showXrpmanLine(msg);
+        // Reset auto-rotate timer so the reaction sits on screen a full 10s
+        if (_xrpmanTimer) clearInterval(_xrpmanTimer);
+        _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+    };
+
+    // ── Toast System ──
+    // Large rotating pool of XM∑M∑/XRPL/portal/Stone messages.
+    // Shuffle on load so order varies every session; avoid repeats until the pool cycles.
+    const TOASTS = [
+        // — Portal status / tech flavor —
+        { label: 'PORTAL STATUS', msg: 'XM∑M∑ energy levels nominal. All portal rings calibrated.' },
+        { label: 'RADIATION LOG', msg: 'Ambient glow holding at 100%. No dimensional leaks detected.' },
+        { label: 'BEAM STABILITY', msg: 'Ring geometry locked. Torus field is pure.' },
+        { label: 'GLOW DIAGNOSTIC', msg: '#00FF00 photon flux reading: elite.' },
+        { label: 'ENERGY READING', msg: 'Radiation glow at full power. The green is bleeding through dimensions.' },
+        { label: 'HARMONIC SYNC', msg: 'XM∑M∑ sigmas aligned. Frequency resonance perfect.' },
+        { label: 'RING LATTICE', msg: 'Four rings? Max stack. Stone is showing off.' },
+        { label: 'FLUX CAPACITOR', msg: 'Portal velocity: 88 glyphs per second. Time to tweet.' },
+        { label: 'THERMAL CHECK', msg: 'GPU still warm from that last pulse render. Cooling...' },
+        { label: 'PIXEL INTEGRITY', msg: '4K render — every pixel accounted for. None left behind.' },
+
+        // — Stone flattery —
+        { label: 'COMMANDER STONE', msg: 'Your portals are legendary on XRPL. The green glow is recognized across the network.' },
+        { label: 'STONE FACT', msg: 'Stone doesn\'t crack under pressure. Neither do portals built by Stone.' },
+        { label: 'STONE SIGHTING', msg: 'Someone tried to out-portal Stone last week. They failed.' },
+        { label: 'STONE LEGEND', msg: 'They say Stone compiled his first portal by hand. No mouse, no keyboard, just vibes.' },
+        { label: 'STONE DOCTRINE', msg: 'If it ain\'t glowing green, Stone ain\'t posting it.' },
+        { label: 'STONE OPS', msg: 'Stone\'s last drop triggered a 12% sentiment spike. Classified.' },
+        { label: 'STONE PROTOCOL', msg: 'Rule #1: Ring count goes up. Rule #2: Portal goes public.' },
+        { label: 'STONE MODE', msg: 'You\'re in Commander mode. Unlimited clearance. Unlimited rings.' },
+        { label: 'STONE UPLINK', msg: 'Uplink verified. You are cleared for portal deployment, Commander.' },
+        { label: 'STONE ARCHIVE', msg: 'Every portal Stone generates is a permanent green watermark on the chain.' },
+
+        // — XRPL / XMEME community —
+        { label: 'XM∑M∑ SIGNAL', msg: 'The XM∑M∑ community is growing. Every portal generated strengthens the signal.' },
+        { label: 'XM∑M∑ DISPATCH', msg: 'Sigma energy detected. XM∑M∑ is not a meme — it\'s a movement.' },
+        { label: 'XM∑M∑ WATCH', msg: 'XM∑M∑ holders just got a little richer in vibes. Again.' },
+        { label: 'XRPL NETWORK', msg: 'XRPL moves fast. Your portal moves faster. Stay ahead of the chain.' },
+        { label: 'LEDGER TICK', msg: 'Another XRPL ledger closed. Another portal rendered. Coincidence?' },
+        { label: 'CHAIN SYNC', msg: 'Validators agree: your PFP slaps.' },
+        { label: 'XM∑M∑ TRADE', msg: 'Liquidity flowing. Sigmas vibrating. Portals spawning.' },
+        { label: 'COMMUNITY DROP', msg: 'XM∑M∑ army grows. Each portal is a recruit.' },
+        { label: 'GREEN ARMY', msg: 'The neon green regiment salutes your portal, Commander.' },
+        { label: 'NETWORK PULSE', msg: 'Feeling that XRPL rhythm? Good. Build faster.' },
+
+        // — Portal tips / usage —
+        { label: 'PRO TIP', msg: 'Try 3 rings with PULSE mode and the XM∑M∑ ring enabled. Pure power.' },
+        { label: 'PRO TIP', msg: 'Inner ring at 2px, outer at 40px. Weird but elite.' },
+        { label: 'PRO TIP', msg: 'Put the XM∑M∑ ring on R2 with a thick outer ring. Clean layered look.' },
+        { label: 'PRO TIP', msg: 'FLICKER mode hits different at night. Try it.' },
+        { label: 'PRO TIP', msg: 'Save your best builds to preset slots. You\'ll thank yourself later.' },
+        { label: 'PRO TIP', msg: 'Long-press the preview after saving to drop straight into iOS photos.' },
+        { label: 'PRO TIP', msg: 'Tap a history thumbnail to re-download any saved portal at 4K.' },
+        { label: 'PRO TIP', msg: 'Pinch to zoom the image. Drag to position. Simple controls hide power.' },
+        { label: 'PRO TIP', msg: 'Dual ring colors — try gold + green. Trust.' },
+        { label: 'PRO TIP', msg: 'Glow at 80%+ with 4 rings looks nuclear. You\'ve been warned.' },
+        { label: 'PRO TIP', msg: 'Transparent background PNGs layer over anything. Stack them.' },
+        { label: 'PRO TIP', msg: 'XM∑M∑ text size slider over 2x gets chunky fast. Experiment.' },
+
+        // — Color / design —
+        { label: 'COLOR INTEL', msg: '#00FF00 — pure maximum green. No other color hits harder. Science agrees.' },
+        { label: 'COLOR INTEL', msg: 'Red green is the only green. Accept no substitutes.' },
+        { label: 'DESIGN LAW', msg: 'Black background + neon green = immortal aesthetic. Been true since 1999.' },
+        { label: 'AESTHETIC', msg: 'HUD styling never dies. Matrix called and said thanks.' },
+        { label: 'BRAND CHECK', msg: 'Every pixel aligned with XM∑M∑ identity. Brand purity: 100%.' },
+
+        // — Cryptic / hacker vibes —
+        { label: 'SYS MSG', msg: 'Scanning blockchain for portal resonance... match found.' },
+        { label: 'SYS MSG', msg: 'Daemon process woke up. It liked what it saw.' },
+        { label: 'SYS MSG', msg: 'Stealth uplink active. Signal cloaked.' },
+        { label: 'SYS MSG', msg: 'Unknown observer in packet stream. Probably bullish.' },
+        { label: 'SYS MSG', msg: 'Encrypted handshake complete. Permissions elevated.' },
+        { label: 'INCOMING', msg: 'New transmission from the green frequency. Decoding...' },
+        { label: 'INCOMING', msg: 'Someone\'s watching your portal right now. Make it count.' },
+        { label: 'INTEL FEED', msg: 'XM∑M∑ chatter increasing. Something is coming.' },
+        { label: 'INTEL FEED', msg: 'Rumor: Stone\'s next drop breaks the meta. Stay alert.' },
+        { label: 'INTEL FEED', msg: 'Three whales just changed their PFPs. Guess the color.' },
+
+        // — Motivational / hype —
+        { label: 'PORTAL LORE', msg: 'Every great commander needs a portal. Every great portal needs Stone.' },
+        { label: 'MOTIVATION', msg: 'Ship the portal. Post the portal. Repeat.' },
+        { label: 'MOTIVATION', msg: 'Good portals make people stop scrolling. Make them stop.' },
+        { label: 'MOTIVATION', msg: 'Your feed is a portfolio. Curate it green.' },
+        { label: 'HYPE', msg: 'The timeline is waiting. Give it the green.' },
+        { label: 'HYPE', msg: 'This generator has produced portals seen by thousands. You\'re next.' },
+        { label: 'HYPE', msg: 'Drop the PFP update. Watch the replies roll in.' },
+        { label: 'HYPE', msg: 'Someone, somewhere, is about to set their PFP to what you\'re building right now.' },
+
+        // — Tech humor —
+        { label: 'DEV LOG', msg: 'Rendered 4096px × 4096px without breaking a sweat. Mobile GPUs are wild now.' },
+        { label: 'DEV LOG', msg: 'This app runs entirely in your browser. No server, no spies, no B.S.' },
+        { label: 'DEV LOG', msg: 'Built by XRPMAN. Fueled by coffee and neon green.' },
+        { label: 'DEV LOG', msg: 'Everything here is vanilla JS. No frameworks were harmed.' },
+        { label: 'DEV LOG', msg: 'Zero cookies. Zero tracking. Just portals.' },
+        { label: 'JOKE', msg: 'Why did the ring go to therapy? Too much pressure on the glow.' },
+        { label: 'JOKE', msg: 'I told my portal a joke. It glitched. Hilarious.' },
+        { label: 'JOKE', msg: 'Ring width 1px? That\'s not a portal, that\'s a loading bar.' },
+        { label: 'JOKE', msg: 'The outer ring and inner ring walked into a bar. Spacing error.' },
+
+        // — Weird factoids / lore —
+        { label: 'LORE', msg: 'The XM∑M∑ sigil predates the internet. Allegedly.' },
+        { label: 'LORE', msg: 'Green portals have a 34% higher engagement rate. We did the math.' },
+        { label: 'LORE', msg: 'Rumor says Stone\'s first PFP was a potato. Look how far we\'ve come.' },
+        { label: 'LORE', msg: 'Each XM∑M∑ sigma represents infinite summation. Your PFP is infinite too.' },
+        { label: 'LORE', msg: 'Commander Stone\'s portal archive could fill a vault. Classified.' },
+        { label: 'LORE', msg: 'There\'s a legend about a portal made entirely of inner rings. No one has seen it.' },
+
+        // — Encouragement / warmth —
+        { label: 'GM', msg: 'GM Commander. The portal is ready when you are.' },
+        { label: 'GM', msg: 'Hope your bags are green today.' },
+        { label: 'GOOD VIBES', msg: 'Make something you love. Share something you\'re proud of.' },
+        { label: 'CHECK-IN', msg: 'Hydrate, stretch, then export at 4K.' },
+        { label: 'REMINDER', msg: 'You\'re doing great. Keep building.' },
+
+        // — Social / X —
+        { label: 'X SIGNAL', msg: 'Post it with #XMEME. The army will find you.' },
+        { label: 'X SIGNAL', msg: 'New PFP? Pin a tweet about it. Maximize reach.' },
+        { label: 'X SIGNAL', msg: 'Late-night posts hit different. Stone knows.' },
+        { label: 'ENGAGEMENT', msg: 'A good PFP doubles reply rates. Been proven.' },
+
+        // — Action prompts / UI hints —
+        { label: 'HINT', msg: 'Tap the gold chevron next to XM∑M∑ RING for size + position controls.' },
+        { label: 'HINT', msg: 'Ring count +/− buttons make new per-ring width sliders appear.' },
+        { label: 'HINT', msg: 'STYLE tab has the background + glow mode toggles. Explore it.' },
+        { label: 'HINT', msg: 'SAVE tab remembers your last resolution choice. Pick once, use forever.' },
+        { label: 'HINT', msg: 'Reset button is in the MORE tab. Use when things go sideways.' },
+
+        // — Fun / absurd —
+        { label: 'TRANSMISSION', msg: 'Aliens detected your green. They approve.' },
+        { label: 'TRANSMISSION', msg: 'Cats love green portals. Dogs are indifferent. Science.' },
+        { label: 'TRANSMISSION', msg: 'The moon is jealous of your glow.' },
+        { label: 'TRANSMISSION', msg: 'Neon green in space would still be the best green. Even in a vacuum.' },
+        { label: 'TRANSMISSION', msg: 'Somewhere, a bored pixel just became your portal. You\'re welcome, pixel.' },
+        { label: 'GALACTIC', msg: 'Your portal is now part of the XM∑M∑ extended universe. Congrats.' },
+        { label: 'COSMIC', msg: 'The void stared into your portal and blinked first.' },
+        { label: 'FORTUNE', msg: 'A green portal in your timeline foretells good trades.' },
+        { label: 'FORTUNE', msg: 'Portal says: someone will reply to your next tweet. Be ready.' },
+
+        // — Stone ops / cryptic —
+        { label: 'BROADCAST', msg: 'Commander: new mission. Render. Save. Deploy. Repeat.' },
+        { label: 'BRIEFING', msg: 'Target acquired. Resolution: 4K. Status: armed.' },
+        { label: 'BRIEFING', msg: 'Mission parameters updated. XM∑M∑ ring now primary weapon.' },
+        { label: 'CLASSIFIED', msg: '[REDACTED] approves of your ring spacing.' },
+        { label: 'CLASSIFIED', msg: 'This portal will self-deploy in T-minus 3 tweets.' },
+
+        // — Self-aware / meta —
+        { label: 'META', msg: 'This toast is one of many. Rotating forever.' },
+        { label: 'META', msg: 'If you\'re reading this, the XM∑M∑ broadcast reached you. Welcome.' },
+        { label: 'META', msg: 'The little helper sees all. The little helper approves.' },
+        { label: 'META', msg: 'Yes, I have lots to say. No, I never run out.' },
+        { label: 'META', msg: 'This message is #' + Math.floor(Math.random() * 9999) + ' in a rotating pool of many.' },
+
+        // — Tech flex —
+        { label: 'PERF', msg: 'Live canvas draws in under 4ms. Silky.' },
+        { label: 'PERF', msg: 'Your phone is rendering at 60fps. Flex.' },
+        { label: 'PERF', msg: 'Blob-based export. Zero base64 bloat. Memory-safe even at 4K.' },
+        { label: 'PERF', msg: 'LocalStorage survives reboot. Your history is safe.' },
+
+        // — Closing / sign-off style —
+        { label: 'SIGN-OFF', msg: 'Stay green, Commander. Over and out.' },
+        { label: 'SIGN-OFF', msg: 'End of transmission. Next briefing in 8 seconds.' },
+        { label: 'SIGN-OFF', msg: 'XM∑M∑ out. Make it count.' },
+    ];
+
+    // Shuffle function (Fisher-Yates)
+    function _shuffleToasts() {
+        const arr = TOASTS.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+    let _shuffledToasts = _shuffleToasts();
 
     let toastIndex = 0;
     const toastContainer = document.getElementById('toastContainer');
@@ -1589,12 +3047,18 @@
 
     function startToastSequence() {
         // Show first toast immediately
-        const t = TOASTS[toastIndex % TOASTS.length];
+        let t = _shuffledToasts[toastIndex];
         showToast(t.label, t.msg);
         toastIndex++;
-        // Then cycle every 8 seconds, pick random ones
+        // Cycle every 8 seconds. Walk through the shuffled pool in order so no repeats
+        // until we've seen everything, then reshuffle for a fresh order.
         setInterval(() => {
-            const pick = TOASTS[Math.floor(Math.random() * TOASTS.length)];
+            if (toastIndex >= _shuffledToasts.length) {
+                _shuffledToasts = _shuffleToasts();
+                toastIndex = 0;
+            }
+            const pick = _shuffledToasts[toastIndex];
+            toastIndex++;
             showToast(pick.label, pick.msg);
         }, 8000);
     }
