@@ -174,6 +174,88 @@
             box-shadow: 0 0 40px rgba(0,255,0,0.15), inset 0 1px 0 rgba(0,255,0,0.1);
         }
 
+        /* ── STONE text texture ── */
+        .stone-text {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='60'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='60' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(100,120,100,0.4));
+            font-style: italic;
+            letter-spacing: 0.05em;
+        }
+        /* Fallback: if background-clip doesn't work, show stone-gray */
+        @supports not (-webkit-background-clip: text) {
+            .stone-text { color: #8a9a8a; -webkit-text-fill-color: #8a9a8a; }
+        }
+
+        /* ── Commander greeting modal ── */
+        #greeterModal {
+            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.92);
+        }
+        #greeterModal .greeter-box {
+            border: 1px solid rgba(0,255,0,0.5);
+            box-shadow: 0 0 60px rgba(0,255,0,0.2), inset 0 1px 0 rgba(0,255,0,0.15);
+            background: linear-gradient(135deg, rgba(0,15,0,0.97) 0%, rgba(0,8,0,0.99) 100%);
+        }
+        @keyframes greeter-in {
+            from { transform: scale(0.85) translateY(20px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .greeter-box { animation: greeter-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+        /* ── Toast system ── */
+        #toastContainer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 8888;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: linear-gradient(135deg, rgba(0,18,0,0.96), rgba(0,10,0,0.98));
+            border: 1px solid rgba(0,255,0,0.4);
+            box-shadow: 0 0 20px rgba(0,255,0,0.15), inset 0 1px 0 rgba(0,255,0,0.1);
+            color: #00ff00;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 10px 14px;
+            max-width: 280px;
+            border-radius: 2px;
+            pointer-events: all;
+            opacity: 0;
+            transform: translateX(40px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.hide { opacity: 0; transform: translateX(40px); }
+        .toast-label {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: rgba(0,255,0,0.5);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .toast-bar {
+            height: 2px;
+            background: rgba(0,255,0,0.3);
+            margin-top: 8px;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        .toast-bar-fill {
+            height: 100%;
+            background: #00ff00;
+            width: 100%;
+            transition: width linear;
+            box-shadow: 0 0 6px #00ff00;
+        }
+
         /* ── Scanline overlay ── */
         body::after {
             content: '';
@@ -193,6 +275,33 @@
 </head>
 <body class="min-h-screen flex flex-col p-4 md:p-6 pb-20 md:pb-6">
 
+    <!-- Commander Greeter Modal -->
+    <div id="greeterModal" class="fixed inset-0 z-[9000] flex items-center justify-center p-4">
+        <div class="greeter-box max-w-sm w-full p-6 relative">
+            <div class="text-[9px] text-green-700 tracking-widest mb-4 uppercase">// SYSTEM AUTHENTICATION</div>
+            <div class="text-center mb-5">
+                <i class="fa-solid fa-radiation text-4xl text-green-400 portal-icon mb-3 block"></i>
+                <div class="text-green-300 text-lg font-bold tracking-widest mb-1">
+                    HELLO, COMMANDER
+                </div>
+                <div class="text-3xl font-bold tracking-wider mb-3">
+                    <span class="stone-text" style="font-size:2rem;">STONE</span>
+                </div>
+                <p class="text-green-600 text-[11px] leading-relaxed">
+                    Portal systems are online.<br>
+                    Energy signature: <span class="text-green-400">#00FF00</span> · NOMINAL<br>
+                    XM∑M∑ network: <span class="text-green-400">CONNECTED</span>
+                </p>
+            </div>
+            <button id="greeterClose" class="hud-btn w-full py-3 text-xs font-bold tracking-widest">
+                <i class="fa-solid fa-arrow-right mr-2"></i> ENTER THE PORTAL
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
     <!-- Animated energy background -->
     <canvas id="bg-canvas"></canvas>
 
@@ -201,8 +310,11 @@
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-radiation text-2xl text-green-500 portal-icon"></i>
             <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-widest leading-none title-glow">DOUBLE PORTAL GENERATOR</h1>
-                <span class="text-[10px] text-green-600 tracking-widest">PERSONAL EDITION · v3.4 · MOBILE OPTIMIZED</span>
+                <h1 class="text-xl md:text-2xl font-bold tracking-widest leading-none title-glow flex items-baseline gap-2">
+                    <span class="stone-text" style="font-size:1.4rem;">STONE'S</span>
+                    <span class="text-green-400">PORTAL GENERATOR</span>
+                </h1>
+                <span class="text-[10px] text-green-600 tracking-widest">PERSONAL EDITION · v4.0 · XM∑M∑ POWERED</span>
             </div>
         </div>
         <div class="text-[10px] text-green-500 hidden sm:flex items-center gap-2 border border-green-900 px-3 py-1.5"
@@ -235,42 +347,36 @@
                 <div class="absolute top-0 right-0 px-2 py-0.5 text-[9px] bg-green-900 text-black font-bold">STEP 2: CONFIGURE</div>
                 
                 <div class="space-y-5 mt-2">
-                    
-                    <!-- Style Selector -->
+
+                    <!-- Ring Count -->
                     <div>
-                         <label class="block text-[10px] uppercase mb-2 tracking-wider text-green-400">Emitter Configuration</label>
-                         <div class="grid grid-cols-2 gap-2">
-                             <button class="style-btn hud-btn py-2 text-xs active-style bg-green-900/30" data-style="single">
-                                 <i class="fa-regular fa-circle"></i> SINGLE
-                             </button>
-                             <button class="style-btn hud-btn py-2 text-xs" data-style="double">
-                                 <i class="fa-regular fa-circle-dot"></i> DOUBLE
-                             </button>
-                         </div>
+                        <label class="block text-[10px] uppercase mb-2 tracking-wider text-green-400">Ring Count</label>
+                        <div class="flex items-center gap-3">
+                            <button id="ringCountDown" class="hud-btn w-9 h-9 text-lg font-bold flex items-center justify-center">−</button>
+                            <span id="ringCountVal" class="text-green-300 text-sm font-bold w-6 text-center">1</span>
+                            <button id="ringCountUp" class="hud-btn w-9 h-9 text-lg font-bold flex items-center justify-center">+</button>
+                            <span class="text-[10px] text-green-700 ml-1">MAX 4</span>
+                        </div>
                     </div>
 
                     <!-- Sliders Grid -->
                     <div class="grid grid-cols-1 gap-4">
-                        
-                        <!-- Main Ring Width (Context Aware Label) -->
                         <div>
                             <div class="flex justify-between text-[10px] mb-1">
-                                <label id="mainWidthLabel">BEAM WIDTH</label>
+                                <label>BEAM WIDTH</label>
                                 <span id="widthVal" class="text-green-400">20px</span>
                             </div>
                             <input type="range" id="ringWidth" min="5" max="80" value="20" class="w-full">
                         </div>
 
-                        <!-- Inner Ring Width (Hidden by default) -->
-                        <div id="innerRingControl" class="hidden border-l-2 border-green-900 pl-3">
+                        <div>
                             <div class="flex justify-between text-[10px] mb-1">
-                                <label class="text-green-300">INNER RING WIDTH</label>
-                                <span id="innerWidthVal" class="text-green-400">5px</span>
+                                <label>RING SPACING</label>
+                                <span id="spacingVal" class="text-green-400">20px</span>
                             </div>
-                            <input type="range" id="innerRingWidth" min="1" max="40" value="5" class="w-full">
+                            <input type="range" id="ringSpacing" min="5" max="60" value="20" class="w-full">
                         </div>
 
-                        <!-- Glow Intensity -->
                         <div>
                             <div class="flex justify-between text-[10px] mb-1">
                                 <label>RADIATION GLOW</label>
@@ -279,8 +385,7 @@
                             <input type="range" id="glowIntensity" min="0" max="100" value="30" class="w-full">
                         </div>
                         
-                         <!-- Zoom -->
-                         <div>
+                        <div>
                             <div class="flex justify-between text-[10px] mb-1">
                                 <label>IMAGE SCALE <span class="text-green-600 text-[9px]">(PINCH TO ZOOM)</span></label>
                                 <span id="zoomVal" class="text-green-400">100%</span>
@@ -289,24 +394,82 @@
                         </div>
                     </div>
 
-                    <!-- Color Picker -->
-                    <div class="flex items-center justify-between border-t border-green-900/30 pt-4">
-                        <label class="text-[10px] uppercase">Energy Signature</label>
-                        <div class="flex gap-2">
-                            <input type="color" id="ringColor" value="#00ff00" class="h-8 w-8 bg-black border border-green-900 p-0 overflow-hidden rounded-sm">
-                            <button id="resetBtn" class="hud-btn px-3 py-1 text-[10px]">
-                                <i class="fa-solid fa-rotate-left"></i> RESET
-                            </button>
+                    <!-- Ring Colors -->
+                    <div class="border-t border-green-900/30 pt-4">
+                        <label class="block text-[10px] uppercase mb-2 tracking-wider text-green-400">Ring Colors</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="ringColor" value="#00ff00" class="h-7 w-7 bg-black border border-green-900 p-0 rounded-sm cursor-pointer">
+                                <span class="text-[10px] text-green-600">OUTER</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="ringColor2" value="#00ff00" class="h-7 w-7 bg-black border border-green-900 p-0 rounded-sm cursor-pointer">
+                                <span class="text-[10px] text-green-600">INNER</span>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Glow Mode -->
+                    <div class="border-t border-green-900/30 pt-4">
+                        <label class="block text-[10px] uppercase mb-2 tracking-wider text-green-400">Glow Mode</label>
+                        <div class="grid grid-cols-4 gap-1">
+                            <button class="glow-btn hud-btn py-1.5 text-[9px] bg-green-900/30" data-glow="steady">STEADY</button>
+                            <button class="glow-btn hud-btn py-1.5 text-[9px]" data-glow="pulse">PULSE</button>
+                            <button class="glow-btn hud-btn py-1.5 text-[9px]" data-glow="flicker">FLICKER</button>
+                            <button class="glow-btn hud-btn py-1.5 text-[9px]" data-glow="none">NONE</button>
+                        </div>
+                    </div>
+
+                    <!-- Background -->
+                    <div class="border-t border-green-900/30 pt-4">
+                        <label class="block text-[10px] uppercase mb-2 tracking-wider text-green-400">Background</label>
+                        <div class="grid grid-cols-3 gap-1 mb-2">
+                            <button class="bg-btn hud-btn py-1.5 text-[9px] bg-green-900/30" data-bg="transparent">CLEAR</button>
+                            <button class="bg-btn hud-btn py-1.5 text-[9px]" data-bg="solid">SOLID</button>
+                            <button class="bg-btn hud-btn py-1.5 text-[9px]" data-bg="gradient">GRADIENT</button>
+                        </div>
+                        <div id="bgColorPicker" class="hidden flex items-center gap-2 mt-1">
+                            <input type="color" id="bgColor" value="#000000" class="h-7 w-7 bg-black border border-green-900 p-0 rounded-sm cursor-pointer">
+                            <span class="text-[10px] text-green-600">FILL COLOR</span>
+                        </div>
+                    </div>
+
+                    <!-- XM∑M∑ Ring -->
+                    <div class="border-t border-green-900/30 pt-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] uppercase tracking-wider text-green-400">XM∑M∑ RING</label>
+                            <button id="xmemeToggle" class="hud-btn px-3 py-1 text-[10px]" data-on="false">OFF</button>
+                        </div>
+                        <p class="text-[9px] text-green-800 mt-1">Adds branded text ring around portal</p>
+                    </div>
+
+                    <!-- Reset -->
+                    <div class="border-t border-green-900/30 pt-4 flex justify-end">
+                        <button id="resetBtn" class="hud-btn px-3 py-1 text-[10px]">
+                            <i class="fa-solid fa-rotate-left"></i> RESET
+                        </button>
                     </div>
 
                 </div>
             </div>
 
              <!-- Action Buttons -->
-             <button id="exportBtn" class="hud-btn w-full py-4 text-sm font-bold bg-green-900/20 border-2 shadow-lg shadow-green-900/20 mb-10 lg:mb-0">
-                <i class="fa-solid fa-floppy-disk mr-2"></i> FINALIZE & SAVE
-            </button>
+             <div class="grid grid-cols-2 gap-2 mb-3">
+                <button id="exportBtn" class="hud-btn py-4 text-xs font-bold bg-green-900/20 border-2 shadow-lg shadow-green-900/20">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> SAVE
+                </button>
+                <button id="shareXBtn" class="hud-btn py-4 text-xs font-bold bg-green-900/20 border-2 shadow-lg shadow-green-900/20">
+                    <i class="fa-brands fa-x-twitter mr-1"></i> SHARE
+                </button>
+             </div>
+
+             <!-- History Panel -->
+             <div class="hud-panel p-3 mb-10 lg:mb-0">
+                <div class="text-[9px] text-green-700 uppercase tracking-wider mb-2">Recent Exports</div>
+                <div id="historyGrid" class="grid grid-cols-5 gap-1">
+                    <div class="col-span-5 text-[9px] text-green-900 text-center py-2">NO EXPORTS YET</div>
+                </div>
+             </div>
 
         </div>
 
@@ -384,467 +547,462 @@
     </div>
 
     <script>
-        // --- State Management ---
+        // --- State ---
         const state = {
             image: null,
-            panX: 0, // In base 1024px coordinate space
-            panY: 0, // In base 1024px coordinate space
+            panX: 0,
+            panY: 0,
+            glowPhase: 0,
+            history: [],
             settings: {
-                color: '#00ff00',
-                width: 25, 
-                innerWidth: 6,
-                glow: 30,
-                zoom: 1,
-                style: 'single' 
+                color:      '#00ff00',
+                color2:     '#00ff00',
+                width:      20,
+                glow:       30,
+                zoom:       1,
+                ringCount:  1,
+                spacing:    20,
+                glowMode:   'steady',
+                bgMode:     'transparent',
+                bgColor:    '#000000',
+                xmemeRing:  false,
             }
         };
 
-        // --- DOM Elements ---
-        const canvas = document.getElementById('portalCanvas');
-        const ctx = canvas.getContext('2d');
-        const wrapper = document.getElementById('canvasWrapper');
-        const fileInput = document.getElementById('imageUpload');
+        // --- DOM ---
+        const canvas      = document.getElementById('portalCanvas');
+        const ctx         = canvas.getContext('2d');
+        const wrapper     = document.getElementById('canvasWrapper');
+        const fileInput   = document.getElementById('imageUpload');
         const fileNameDisplay = document.getElementById('fileName');
         const placeholder = document.getElementById('placeholderText');
-        const saveModal = document.getElementById('saveModal');
-        const finalImage = document.getElementById('finalImage');
-        const directLink = document.getElementById('directDownloadLink');
-        const innerControlDiv = document.getElementById('innerRingControl');
-        const mainWidthLabel = document.getElementById('mainWidthLabel');
+        const saveModal   = document.getElementById('saveModal');
+        const finalImage  = document.getElementById('finalImage');
+        const directLink  = document.getElementById('directDownloadLink');
         const fileNameInput = document.getElementById('fileNameInput');
-        const resBtns = document.querySelectorAll('.res-btn');
-        
-        // Controls
+        const resBtns     = document.querySelectorAll('.res-btn');
+        const historyGrid = document.getElementById('historyGrid');
+
         const inputs = {
-            color: document.getElementById('ringColor'),
-            width: document.getElementById('ringWidth'),
-            innerWidth: document.getElementById('innerRingWidth'),
-            glow: document.getElementById('glowIntensity'),
-            zoom: document.getElementById('imageZoom')
+            color:   document.getElementById('ringColor'),
+            color2:  document.getElementById('ringColor2'),
+            width:   document.getElementById('ringWidth'),
+            spacing: document.getElementById('ringSpacing'),
+            glow:    document.getElementById('glowIntensity'),
+            zoom:    document.getElementById('imageZoom'),
+            bgColor: document.getElementById('bgColor'),
         };
-        
         const labels = {
-            width: document.getElementById('widthVal'),
-            innerWidth: document.getElementById('innerWidthVal'),
-            glow: document.getElementById('glowVal'),
-            zoom: document.getElementById('zoomVal')
+            width:   document.getElementById('widthVal'),
+            spacing: document.getElementById('spacingVal'),
+            glow:    document.getElementById('glowVal'),
+            zoom:    document.getElementById('zoomVal'),
         };
 
-        const styleBtns = document.querySelectorAll('.style-btn');
-
-        // --- Initialization ---
+        // --- Init ---
         function init() {
-            canvas.width = 1024;
+            canvas.width  = 1024;
             canvas.height = 1024;
-            // Set defaults for UI
-            inputs.width.value = state.settings.width;
-            inputs.innerWidth.value = state.settings.innerWidth;
-            labels.width.innerText = state.settings.width + 'px';
-            labels.innerWidth.innerText = state.settings.innerWidth + 'px';
-            
+            inputs.width.value   = state.settings.width;
+            inputs.spacing.value = state.settings.spacing;
+            labels.width.innerText   = state.settings.width + 'px';
+            labels.spacing.innerText = state.settings.spacing + 'px';
             draw();
             setupEventListeners();
             setupTouchGestures();
+            requestAnimationFrame(animLoop);
         }
 
+        // Animation loop for pulse/flicker modes — throttled to ~24fps
+        let _lastAnimFrame = 0;
+        function animLoop(ts) {
+            requestAnimationFrame(animLoop);
+            if (state.settings.glowMode === 'steady' || state.settings.glowMode === 'none') return;
+            if (ts - _lastAnimFrame < 42) return; // ~24fps cap
+            _lastAnimFrame = ts;
+            state.glowPhase += 0.05;
+            draw();
+        }
+
+        function getEffectiveGlow() {
+            const base = state.settings.glow;
+            if (state.settings.glowMode === 'none')    return 0;
+            if (state.settings.glowMode === 'steady')  return base;
+            if (state.settings.glowMode === 'pulse')
+                return base * (0.4 + 0.6 * (0.5 + 0.5 * Math.sin(state.glowPhase)));
+            if (state.settings.glowMode === 'flicker') {
+                const flick = Math.random() > 0.1 ? 1 : (0.2 + Math.random() * 0.5);
+                return base * flick * (0.7 + 0.3 * Math.sin(state.glowPhase * 2.3));
+            }
+            return base;
+        }
+
+        // --- Event Listeners ---
         function setupEventListeners() {
             fileInput.addEventListener('change', handleImageUpload);
-            
-            inputs.width.addEventListener('input', (e) => {
+
+            inputs.width.addEventListener('input', e => {
                 state.settings.width = parseInt(e.target.value);
                 labels.width.innerText = e.target.value + 'px';
                 draw();
             });
-
-            inputs.innerWidth.addEventListener('input', (e) => {
-                state.settings.innerWidth = parseInt(e.target.value);
-                labels.innerWidth.innerText = e.target.value + 'px';
+            inputs.spacing.addEventListener('input', e => {
+                state.settings.spacing = parseInt(e.target.value);
+                labels.spacing.innerText = e.target.value + 'px';
                 draw();
             });
-
-            inputs.glow.addEventListener('input', (e) => {
+            inputs.glow.addEventListener('input', e => {
                 state.settings.glow = parseInt(e.target.value);
                 labels.glow.innerText = e.target.value + '%';
                 draw();
             });
-
-            inputs.zoom.addEventListener('input', (e) => {
+            inputs.zoom.addEventListener('input', e => {
                 state.settings.zoom = parseInt(e.target.value) / 100;
                 labels.zoom.innerText = e.target.value + '%';
                 draw();
             });
+            inputs.color.addEventListener('input',   e => { state.settings.color   = e.target.value; draw(); });
+            inputs.color2.addEventListener('input',  e => { state.settings.color2  = e.target.value; draw(); });
+            inputs.bgColor.addEventListener('input', e => { state.settings.bgColor = e.target.value; draw(); });
 
-            inputs.color.addEventListener('input', (e) => {
-                state.settings.color = e.target.value;
-                draw();
+            // Ring count +/-
+            document.getElementById('ringCountDown').addEventListener('click', () => {
+                if (state.settings.ringCount > 1) {
+                    state.settings.ringCount--;
+                    document.getElementById('ringCountVal').innerText = state.settings.ringCount;
+                    draw();
+                }
+            });
+            document.getElementById('ringCountUp').addEventListener('click', () => {
+                if (state.settings.ringCount < 4) {
+                    state.settings.ringCount++;
+                    document.getElementById('ringCountVal').innerText = state.settings.ringCount;
+                    draw();
+                }
             });
 
-            styleBtns.forEach(btn => {
+            // Glow mode
+            document.querySelectorAll('.glow-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const mode = btn.dataset.style;
-                    styleBtns.forEach(b => {
-                        b.classList.remove('bg-green-900/30', 'border-green-500');
-                        b.style.boxShadow = 'none';
-                    });
-                    btn.classList.add('bg-green-900/30', 'border-green-500');
-                    btn.style.boxShadow = '0 0 10px rgba(0,255,0,0.2)';
-                    state.settings.style = mode;
-                    
-                    if (mode === 'double') {
-                        innerControlDiv.classList.remove('hidden');
-                        mainWidthLabel.innerText = "OUTER RING WIDTH";
-                        if(state.settings.width < 15) {
-                            state.settings.width = 25;
-                            inputs.width.value = 25;
-                            labels.width.innerText = "25px";
-                        }
-                    } else {
-                        innerControlDiv.classList.add('hidden');
-                        mainWidthLabel.innerText = "BEAM WIDTH";
-                    }
+                    document.querySelectorAll('.glow-btn').forEach(b => b.classList.remove('bg-green-900/30'));
+                    btn.classList.add('bg-green-900/30');
+                    state.settings.glowMode = btn.dataset.glow;
                     draw();
                 });
             });
 
-            document.getElementById('resetBtn').addEventListener('click', () => {
-                state.settings.color = '#00ff00';
-                state.settings.width = 25;
-                state.settings.innerWidth = 6;
-                state.settings.glow = 30;
-                state.settings.zoom = 1;
-                state.settings.style = 'single';
-                state.panX = 0;
-                state.panY = 0;
-                
-                inputs.color.value = '#00ff00';
-                inputs.width.value = 25;
-                inputs.innerWidth.value = 6;
-                inputs.glow.value = 30;
-                inputs.zoom.value = 100;
-                labels.width.innerText = '25px';
-                labels.innerWidth.innerText = '6px';
-                labels.glow.innerText = '30%';
-                labels.zoom.innerText = '100%';
-                
-                styleBtns.forEach(b => b.classList.remove('bg-green-900/30', 'border-green-500'));
-                styleBtns[0].classList.add('bg-green-900/30'); 
-                
-                innerControlDiv.classList.add('hidden');
-                mainWidthLabel.innerText = "BEAM WIDTH";
+            // Background mode
+            document.querySelectorAll('.bg-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('bg-green-900/30'));
+                    btn.classList.add('bg-green-900/30');
+                    state.settings.bgMode = btn.dataset.bg;
+                    document.getElementById('bgColorPicker').classList.toggle('hidden', btn.dataset.bg === 'transparent');
+                    draw();
+                });
+            });
 
+            // XM∑M∑ ring toggle
+            document.getElementById('xmemeToggle').addEventListener('click', () => {
+                state.settings.xmemeRing = !state.settings.xmemeRing;
+                const btn = document.getElementById('xmemeToggle');
+                btn.dataset.on = state.settings.xmemeRing;
+                btn.innerText = state.settings.xmemeRing ? 'ON' : 'OFF';
+                btn.classList.toggle('bg-green-900/30', state.settings.xmemeRing);
                 draw();
             });
 
-            document.getElementById('exportBtn').addEventListener('click', showSaveModal);
-            document.getElementById('closeModal').addEventListener('click', () => saveModal.classList.add('hidden'));
-            saveModal.addEventListener('click', (e) => {
-                if (e.target === saveModal) saveModal.classList.add('hidden');
-            });
-            
-            fileNameInput.addEventListener('input', (e) => {
-                const cleanName = e.target.value.replace(/[^a-z0-9_\-]/gi, '_');
-                directLink.download = `${cleanName}.png`;
+            // Reset
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                state.settings = {
+                    color: '#00ff00', color2: '#00ff00',
+                    width: 20, glow: 30, zoom: 1,
+                    ringCount: 1, spacing: 20,
+                    glowMode: 'steady', bgMode: 'transparent',
+                    bgColor: '#000000', xmemeRing: false,
+                };
+                state.panX = 0; state.panY = 0;
+                inputs.color.value   = '#00ff00';
+                inputs.color2.value  = '#00ff00';
+                inputs.width.value   = 20;
+                inputs.spacing.value = 20;
+                inputs.glow.value    = 30;
+                inputs.zoom.value    = 100;
+                inputs.bgColor.value = '#000000';
+                labels.width.innerText   = '20px';
+                labels.spacing.innerText = '20px';
+                labels.glow.innerText    = '30%';
+                labels.zoom.innerText    = '100%';
+                document.getElementById('ringCountVal').innerText = '1';
+                document.querySelectorAll('.glow-btn').forEach((b,i) => b.classList.toggle('bg-green-900/30', i===0));
+                document.querySelectorAll('.bg-btn').forEach((b,i) => b.classList.toggle('bg-green-900/30', i===0));
+                document.getElementById('bgColorPicker').classList.add('hidden');
+                const xt = document.getElementById('xmemeToggle');
+                xt.dataset.on = 'false'; xt.innerText = 'OFF'; xt.classList.remove('bg-green-900/30');
+                draw();
             });
 
-            // Resolution Buttons
+            // Export & Share
+            document.getElementById('exportBtn').addEventListener('click', showSaveModal);
+            document.getElementById('shareXBtn').addEventListener('click', () => {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 1024; tempCanvas.height = 1024;
+                renderScene(tempCanvas.getContext('2d'), 1024, 1024);
+                const a = document.createElement('a');
+                a.href = tempCanvas.toDataURL('image/png');
+                a.download = 'xmeme_portal.png';
+                a.click();
+                setTimeout(() => {
+                    window.open('https://twitter.com/intent/tweet?text=%24XMEME+Portal+PFP+%F0%9F%9F%A2+%23XMEME+%23XRPL', '_blank');
+                }, 600);
+            });
+
+            document.getElementById('closeModal').addEventListener('click', () => saveModal.classList.add('hidden'));
+            saveModal.addEventListener('click', e => { if (e.target === saveModal) saveModal.classList.add('hidden'); });
+
+            fileNameInput.addEventListener('input', e => {
+                directLink.download = e.target.value.replace(/[^a-z0-9_\-]/gi, '_') + '.png';
+            });
+
             resBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    // UI Update
                     resBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    
-                    // Logic Update
-                    const multiplier = parseInt(btn.dataset.res);
-                    generateHighResOutput(multiplier);
+                    generateHighResOutput(parseInt(btn.dataset.res));
                 });
             });
         }
 
-        // --- Touch & Gesture Logic ---
-
+        // --- Touch Gestures ---
         function setupTouchGestures() {
-            let isDragging = false;
-            let lastX = 0;
-            let lastY = 0;
-            let initialPinchDist = null;
-            let initialZoom = 1;
+            let isDragging = false, lastX = 0, lastY = 0;
+            let initialPinchDist = null, initialZoom = 1;
 
-            wrapper.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                lastX = e.clientX;
-                lastY = e.clientY;
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                e.preventDefault();
-                handleDrag(e.clientX, e.clientY);
-            });
-
+            wrapper.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+            window.addEventListener('mousemove', e => { if (!isDragging) return; e.preventDefault(); handleDrag(e.clientX, e.clientY); });
             window.addEventListener('mouseup', () => isDragging = false);
 
-            wrapper.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    isDragging = true;
-                    lastX = e.touches[0].clientX;
-                    lastY = e.touches[0].clientY;
-                } else if (e.touches.length === 2) {
-                    isDragging = false;
-                    initialPinchDist = getDist(e.touches);
-                    initialZoom = state.settings.zoom;
-                }
+            wrapper.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }
+                else if (e.touches.length === 2) { isDragging = false; initialPinchDist = getDist(e.touches); initialZoom = state.settings.zoom; }
             }, { passive: false });
 
-            wrapper.addEventListener('touchmove', (e) => {
-                e.preventDefault(); 
+            wrapper.addEventListener('touchmove', e => {
+                e.preventDefault();
                 if (e.touches.length === 1 && isDragging) {
                     handleDrag(e.touches[0].clientX, e.touches[0].clientY);
-                } else if (e.touches.length === 2) {
-                    const currentDist = getDist(e.touches);
-                    if (initialPinchDist) {
-                        const scale = currentDist / initialPinchDist;
-                        let newZoom = initialZoom * scale;
-                        const pinchMin = parseFloat(inputs.zoom.min) / 100;
-                        const pinchMax = parseFloat(inputs.zoom.max) / 100;
-                        newZoom = Math.min(Math.max(newZoom, pinchMin), pinchMax);
-                        state.settings.zoom = newZoom;
-                        inputs.zoom.value = Math.round(newZoom * 100);
-                        labels.zoom.innerText = Math.round(newZoom * 100) + '%';
-                        draw();
-                    }
+                } else if (e.touches.length === 2 && initialPinchDist) {
+                    const nz = Math.min(Math.max(initialZoom * getDist(e.touches) / initialPinchDist,
+                        parseFloat(inputs.zoom.min)/100), parseFloat(inputs.zoom.max)/100);
+                    state.settings.zoom = nz;
+                    inputs.zoom.value = Math.round(nz * 100);
+                    labels.zoom.innerText = Math.round(nz * 100) + '%';
+                    draw();
                 }
             }, { passive: false });
 
-            wrapper.addEventListener('touchend', (e) => {
-                isDragging = false;
-                if (e.touches.length < 2) initialPinchDist = null;
-            });
+            wrapper.addEventListener('touchend', e => { isDragging = false; if (e.touches.length < 2) initialPinchDist = null; });
 
             function handleDrag(clientX, clientY) {
-                const dx = clientX - lastX;
-                const dy = clientY - lastY;
-                lastX = clientX;
-                lastY = clientY;
-
+                const dx = clientX - lastX, dy = clientY - lastY;
+                lastX = clientX; lastY = clientY;
                 const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-
-                state.panX += dx * scaleX;
-                state.panY += dy * scaleY;
+                state.panX += dx * (canvas.width / rect.width);
+                state.panY += dy * (canvas.height / rect.height);
                 draw();
             }
-
-            function getDist(touches) {
-                return Math.hypot(
-                    touches[0].clientX - touches[1].clientX,
-                    touches[0].clientY - touches[1].clientY
-                );
-            }
+            function getDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
         }
 
-        // --- Core Logic ---
-
+        // --- Upload ---
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             fileNameDisplay.innerText = `LOADED: ${file.name.toUpperCase()}`;
             placeholder.style.display = 'none';
-
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = ev => {
                 const img = new Image();
                 img.onload = () => {
                     state.image = img;
-                    state.panX = 0;
-                    state.panY = 0;
-
-                    // Recalculate zoom slider range based on image size vs canvas (1024px base)
-                    // baseScale = how much the image is scaled by default to fill the canvas
+                    state.panX = 0; state.panY = 0;
                     const baseScale = Math.max(1024 / img.width, 1024 / img.height);
-                    // Min: allow image to shrink to 20% of ring — handles 4K+ images
-                    const dynMin = Math.max(5, Math.round((0.20 / baseScale) * 100));
-                    // Max: always allow zooming in to 4x base scale
-                    const dynMax = Math.max(300, Math.round((4 / baseScale) * 100));
-                    inputs.zoom.min = dynMin;
-                    inputs.zoom.max = dynMax;
-                    inputs.zoom.value = 100;
-                    state.settings.zoom = 1;
+                    inputs.zoom.min = Math.max(5, Math.round((0.20 / baseScale) * 100));
+                    inputs.zoom.max = Math.max(300, Math.round((4 / baseScale) * 100));
+                    inputs.zoom.value = 100; state.settings.zoom = 1;
                     labels.zoom.innerText = '100%';
-
                     draw();
                 };
-                img.src = event.target.result;
+                img.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        // Updated Render Scene that handles Scaling
+        // --- Render ---
         function renderScene(context, width, height) {
-            const k = width / 1024; // Scale factor relative to base design (1024)
-            
+            const k = width / 1024;
             context.clearRect(0, 0, width, height);
-            const cx = width / 2;
-            const cy = height / 2;
-            
-            // Scale margins/radius
+            const cx = width / 2, cy = height / 2;
             const margin = 80 * k;
-            const maxRadius = (width / 2) - margin;
+            const baseRadius = (width / 2) - margin;
 
-            // Clip everything to a circle — pixels outside stay transparent in PNG export
-            // Extra padding = glow radius so shadowBlur isn't clipped
-            const sWidth = state.settings.width * k;
-            const glowPad = state.settings.glow * k;
-            const clipRadius = state.settings.style === 'double'
-                ? maxRadius + sWidth + (10 * k) + glowPad
-                : maxRadius + sWidth + (6 * k) + glowPad;
+            const { ringCount, width: rw, spacing, color, color2,
+                    bgMode, bgColor, xmemeRing } = state.settings;
+            const sWidth   = rw * k;
+            const sSpacing = spacing * k;
+            const sGlow    = getEffectiveGlow() * k;
+            const outerRadius = baseRadius + (ringCount - 1) * sSpacing;
+            const clipRadius  = outerRadius + sWidth + sGlow + (xmemeRing ? 42 * k : 8 * k);
+
             context.save();
             context.beginPath();
             context.arc(cx, cy, clipRadius, 0, Math.PI * 2);
             context.clip();
 
-            // 1. Draw Image
+            // Background
+            if (bgMode === 'solid') {
+                context.fillStyle = bgColor;
+                context.fillRect(0, 0, width, height);
+            } else if (bgMode === 'gradient') {
+                const grad = context.createRadialGradient(cx, cy, 0, cx, cy, clipRadius);
+                grad.addColorStop(0, bgColor);
+                grad.addColorStop(1, '#000000');
+                context.fillStyle = grad;
+                context.fillRect(0, 0, width, height);
+            }
+
+            // Image
             if (state.image) {
                 context.save();
                 context.beginPath();
-                context.arc(cx, cy, maxRadius, 0, Math.PI * 2);
+                context.arc(cx, cy, baseRadius, 0, Math.PI * 2);
                 context.closePath();
                 context.clip();
-
                 const imgScale = Math.max(width / state.image.width, height / state.image.height) * state.settings.zoom;
-                
                 const drawW = state.image.width * imgScale;
                 const drawH = state.image.height * imgScale;
-                
-                // Pan scaling: state.panX is 1024-based. Scale offset by k.
-                const offsetX = state.panX * k;
-                const offsetY = state.panY * k;
-                
-                const drawX = cx - (drawW / 2) + offsetX;
-                const drawY = cy - (drawH / 2) + offsetY;
-
-                context.drawImage(state.image, drawX, drawY, drawW, drawH);
+                context.drawImage(state.image,
+                    cx - drawW/2 + state.panX * k,
+                    cy - drawH/2 + state.panY * k,
+                    drawW, drawH);
                 context.restore();
             }
 
-            // 2. Draw Rings (Pass scale K)
-            drawRings(context, cx, cy, maxRadius, k);
+            // Rings — outermost first
+            context.lineCap = 'round';
+            for (let i = 0; i < ringCount; i++) {
+                const ringRadius = outerRadius - i * sSpacing;
+                const ringColor  = i % 2 === 0 ? color : color2;
+                context.save();
+                context.beginPath();
+                context.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+                context.strokeStyle = ringColor;
+                context.lineWidth   = sWidth;
+                context.shadowColor = ringColor;
+                context.shadowBlur  = sGlow;
+                context.stroke();
+                // white core highlight
+                context.strokeStyle  = 'rgba(255,255,255,0.45)';
+                context.lineWidth    = sWidth * 0.25;
+                context.shadowBlur   = sGlow * 0.4;
+                context.globalAlpha  = 0.5;
+                context.stroke();
+                context.restore();
+            }
 
-            // End clip region
+            // XM∑M∑ text ring — tightly packed, sigmas drawn smaller
+            if (xmemeRing) {
+                const textRadius = outerRadius + sWidth * 0.5 + (18 * k);
+                const circumference = 2 * Math.PI * textRadius;
+                const fontSize   = Math.max(8, 11 * k);
+                const sigmaSize  = fontSize * 0.72; // sigmas slightly smaller
+                const baseText   = 'XM∑M∑·';
+
+                // Measure total width of one repeat using an offscreen approach
+                context.save();
+                context.font = `bold ${fontSize}px "Fira Code", monospace`;
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+
+                // Build char+size pairs for one repeat
+                const charDefs = [];
+                for (const ch of baseText) {
+                    const isSigma = ch === '∑';
+                    const fSize = isSigma ? sigmaSize : fontSize;
+                    context.font = `bold ${fSize}px "Fira Code", monospace`;
+                    const w = context.measureText(ch).width * 1.05; // 5% breathing room
+                    charDefs.push({ ch, fSize, w });
+                }
+                const repeatWidth = charDefs.reduce((a, c) => a + c.w, 0);
+
+                // How many full repeats fit, then build full sequence
+                const repeats = Math.max(1, Math.floor(circumference / repeatWidth));
+                const allChars = [];
+                for (let r = 0; r < repeats; r++) charDefs.forEach(c => allChars.push(c));
+
+                // Distribute chars evenly around circle
+                const totalWidth = allChars.reduce((a, c) => a + c.w, 0);
+                const scale = circumference / totalWidth; // stretch/compress to fit exactly
+
+                context.fillStyle   = color;
+                context.shadowColor = color;
+                context.shadowBlur  = sGlow * 0.6;
+
+                let currentAngle = -Math.PI / 2;
+                for (const { ch, fSize, w } of allChars) {
+                    const scaledW = w * scale;
+                    const charAngle = currentAngle + (scaledW / 2) / textRadius;
+                    context.save();
+                    context.translate(
+                        cx + textRadius * Math.cos(charAngle),
+                        cy + textRadius * Math.sin(charAngle)
+                    );
+                    context.rotate(charAngle + Math.PI / 2);
+                    context.font = `bold ${fSize}px "Fira Code", monospace`;
+                    context.fillText(ch, 0, 0);
+                    context.restore();
+                    currentAngle += scaledW / textRadius;
+                }
+                context.restore();
+            }
+
             context.restore();
         }
 
-        // Main Draw (Screen Canvas)
-        function draw() {
-            renderScene(ctx, canvas.width, canvas.height);
-        }
+        function draw() { renderScene(ctx, canvas.width, canvas.height); }
 
-        function drawRings(ctx, cx, cy, radius, k) {
-            const { color, width, innerWidth, glow, style } = state.settings;
-            
-            // Scale visual properties
-            const sWidth = width * k;
-            const sInnerWidth = innerWidth * k;
-            const sGlow = glow * k;
-            
-            ctx.lineCap = 'round';
-            ctx.shadowColor = color;
-            ctx.shadowBlur = sGlow;
-
-            if (style === 'double') {
-                // Outer Ring
-                ctx.save();
-                const outerRadius = radius + (sWidth/2) + (5 * k); 
-                ctx.beginPath();
-                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2); 
-                ctx.strokeStyle = color;
-                ctx.lineWidth = sWidth; 
-                ctx.stroke();
-                
-                ctx.strokeStyle = '#fff';
-                ctx.shadowBlur = sGlow / 2;
-                ctx.lineWidth = sWidth * 0.3;
-                ctx.globalAlpha = 0.5;
-                ctx.stroke();
-                ctx.restore();
-
-                // Inner Ring
-                ctx.save();
-                const innerRadius = radius - (15 * k); 
-                ctx.beginPath();
-                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2); 
-                ctx.shadowBlur = sGlow;
-                ctx.shadowColor = color;
-                ctx.strokeStyle = color;
-                ctx.lineWidth = sInnerWidth;
-                ctx.stroke();
-
-                ctx.strokeStyle = '#fff';
-                ctx.shadowBlur = sGlow / 3;
-                ctx.lineWidth = Math.max(1, sInnerWidth * 0.3);
-                ctx.globalAlpha = 0.8;
-                ctx.stroke();
-                ctx.restore();
-
-            } else {
-                // Single Ring
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-                ctx.strokeStyle = color;
-                ctx.lineWidth = sWidth;
-                ctx.stroke();
-
-                ctx.shadowBlur = sGlow / 2;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = sWidth / 3;
-                ctx.globalAlpha = 0.6;
-                ctx.stroke();
-                ctx.restore();
-            }
-        }
-
-        // Generate High Res Output for Modal
+        // --- Export ---
         function generateHighResOutput(multiplier) {
             const size = 1024 * multiplier;
-            
-            // Create offscreen canvas
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = size;
-            tempCanvas.height = size;
-            const tempCtx = tempCanvas.getContext('2d');
-            
-            // Render to it
-            renderScene(tempCtx, size, size);
-            
-            // Export
+            tempCanvas.width = size; tempCanvas.height = size;
+            renderScene(tempCanvas.getContext('2d'), size, size);
             const dataUrl = tempCanvas.toDataURL('image/png');
-            finalImage.src = dataUrl;
+            finalImage.src  = dataUrl;
             directLink.href = dataUrl;
+            return dataUrl;
+        }
+
+        function addToHistory(dataUrl, name) {
+            state.history.unshift({ dataUrl, name });
+            if (state.history.length > 5) state.history.pop();
+            historyGrid.innerHTML = state.history.map(h => `
+                <a href="${h.dataUrl}" download="${h.name}.png" title="${h.name}"
+                   class="block border border-green-900 hover:border-green-500 transition-colors">
+                    <img src="${h.dataUrl}" class="w-full aspect-square object-cover opacity-80 hover:opacity-100">
+                </a>
+            `).join('');
         }
 
         function showSaveModal() {
-            if (!state.image) {
-                const btn = document.getElementById('exportBtn');
-                btn.classList.add('bg-red-900/50');
-                setTimeout(() => btn.classList.remove('bg-red-900/50'), 300);
-            }
-            
-            // Default generate 1K
-            generateHighResOutput(1);
-            
-            // Reset active button state
+            const dataUrl = generateHighResOutput(1);
             resBtns.forEach(b => b.classList.remove('active'));
-            resBtns[0].classList.add('active'); // 1K is first
-            
-            // Name gen
+            resBtns[0].classList.add('active');
             const timestamp = Math.floor(Date.now() / 1000).toString().slice(-5);
-            const uniqueName = `portal_XRP_${timestamp}`;
-            
+            const uniqueName = `xmeme_portal_${timestamp}`;
             fileNameInput.value = uniqueName;
             directLink.download = `${uniqueName}.png`;
-            
+            addToHistory(dataUrl, uniqueName);
             saveModal.classList.remove('hidden');
         }
 
@@ -863,7 +1021,74 @@
     </footer>
 
     <script>
-    // ── PLASMA ENERGY BACKGROUND ──
+    // ── Commander Greeter ──
+    document.getElementById('greeterClose').addEventListener('click', () => {
+        const modal = document.getElementById('greeterModal');
+        modal.style.transition = 'opacity 0.4s ease';
+        modal.style.opacity = '0';
+        setTimeout(() => modal.remove(), 400);
+        // Start toast sequence after greeting closes
+        setTimeout(startToastSequence, 800);
+    });
+
+    // ── Toast System ──
+    const TOASTS = [
+        { label: 'PORTAL STATUS', msg: 'XM∑M∑ energy levels nominal. All portal rings calibrated and ready for deployment.' },
+        { label: 'COMMANDER STONE', msg: 'Your portals are legendary on XRPL. The green glow is recognized across the network.' },
+        { label: 'COLOR INTEL', msg: '#00FF00 — pure maximum green. No other color hits harder. Science agrees.' },
+        { label: 'XM∑M∑ SIGNAL', msg: 'The XM∑M∑ community is growing. Every portal generated strengthens the signal.' },
+        { label: 'PRO TIP', msg: 'Try 3 rings with PULSE mode and the XM∑M∑ ring enabled. Pure power.' },
+        { label: 'XRPL NETWORK', msg: 'XRPL moves fast. Your portal moves faster. Stay ahead of the chain.' },
+        { label: 'STONE FACT', msg: 'Stone doesn\'t crack under pressure. Neither do portals built by Stone.' },
+        { label: 'ENERGY READING', msg: 'Radiation glow at full power. The green is bleeding through dimensions.' },
+        { label: 'XM∑M∑ DISPATCH', msg: 'Sigma energy detected. XM∑M∑ is not a meme — it\'s a movement.' },
+        { label: 'PORTAL LORE', msg: 'Every great commander needs a portal. Every great portal needs Stone.' },
+    ];
+
+    let toastIndex = 0;
+    const toastContainer = document.getElementById('toastContainer');
+
+    function showToast(label, msg, duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <div class="toast-label">// ${label}</div>
+            <div>${msg}</div>
+            <div class="toast-bar"><div class="toast-bar-fill" id="bar-${toastIndex}"></div></div>
+        `;
+        toastContainer.appendChild(toast);
+        // Animate in
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+                const bar = toast.querySelector('.toast-bar-fill');
+                if (bar) {
+                    bar.style.transitionDuration = duration + 'ms';
+                    bar.style.width = '0%';
+                }
+            });
+        });
+        // Animate out
+        setTimeout(() => {
+            toast.classList.add('hide');
+            setTimeout(() => toast.remove(), 350);
+        }, duration);
+    }
+
+    function startToastSequence() {
+        // Show first toast immediately
+        const t = TOASTS[toastIndex % TOASTS.length];
+        showToast(t.label, t.msg);
+        toastIndex++;
+        // Then cycle every 8 seconds, pick random ones
+        setInterval(() => {
+            const pick = TOASTS[Math.floor(Math.random() * TOASTS.length)];
+            showToast(pick.label, pick.msg);
+        }, 8000);
+    }
+    </script>
+
+    <script>
     (function() {
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
