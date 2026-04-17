@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Generator v3.4 | XRPL Protocol</title>
+    <title>Double Portal Generator | XMEME</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,50 +11,90 @@
 
         :root {
             --neon-green: #00ff00;
+            --neon-dim: #00cc00;
             --dark-bg: #050505;
-            --panel-bg: #0a0a0a;
+            --panel-bg: #080808;
             --border-color: #1a1a1a;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             background-color: var(--dark-bg);
             color: var(--neon-green);
             font-family: 'Fira Code', monospace;
-            background-image: 
-                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-            overscroll-behavior-y: none; 
+            overscroll-behavior-y: none;
+            overflow-x: hidden;
         }
+
+        /* ── Animated energy background ── */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 1;
+        }
+
+        body > * { position: relative; z-index: 1; }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb { background: #1a3a1a; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
 
+        /* ── Panels ── */
         .hud-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--neon-green);
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+            background: linear-gradient(135deg, rgba(0,12,0,0.82) 0%, rgba(0,8,0,0.88) 100%);
+            border: 1px solid rgba(0,255,0,0.45);
+            box-shadow:
+                0 0 0 1px rgba(0,255,0,0.08),
+                0 0 25px rgba(0,255,0,0.12),
+                inset 0 1px 0 rgba(0,255,0,0.12);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(2px);
         }
+        /* corner accents */
+        .hud-panel::before, .hud-panel::after {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            border-color: var(--neon-green);
+            border-style: solid;
+            opacity: 0.6;
+        }
+        .hud-panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .hud-panel::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
 
+        /* ── Buttons ── */
         .hud-btn {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid var(--neon-green);
+            background: rgba(0,255,0,0.06);
+            border: 1px solid rgba(0,255,0,0.4);
             color: var(--neon-green);
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.2s;
+            transition: all 0.18s ease;
             cursor: pointer;
             user-select: none;
+            position: relative;
+            overflow: hidden;
         }
-
-        .hud-btn:active { transform: scale(0.98); }
+        .hud-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(0,255,0,0.06) 100%);
+            pointer-events: none;
+        }
+        .hud-btn:active { transform: scale(0.97); }
         .hud-btn:hover {
             background: var(--neon-green);
             color: #000;
-            box-shadow: 0 0 15px var(--neon-green);
+            box-shadow: 0 0 18px rgba(0,255,0,0.7), 0 0 40px rgba(0,255,0,0.2);
+            border-color: var(--neon-green);
         }
 
         /* Active State for Resolution Buttons */
@@ -62,56 +102,112 @@
             background: var(--neon-green);
             color: #000;
             font-weight: bold;
-            box-shadow: 0 0 10px var(--neon-green);
+            box-shadow: 0 0 12px rgba(0,255,0,0.8);
         }
 
         /* Range Slider */
-        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 16px; width: 16px;
+            height: 14px; width: 14px;
             background: var(--neon-green);
             cursor: pointer;
-            margin-top: -6px; 
-            box-shadow: 0 0 5px var(--neon-green);
+            margin-top: -5px;
+            box-shadow: 0 0 8px var(--neon-green);
             border-radius: 50%;
         }
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px;
-            cursor: pointer; background: #333;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, rgba(0,255,0,0.5), rgba(0,255,0,0.15));
             border-radius: 2px;
         }
 
+        /* ── Canvas preview area ── */
         .canvas-container {
-            background-image: 
-                linear-gradient(45deg, #111 25%, transparent 25%), 
-                linear-gradient(-45deg, #111 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #111 75%), 
-                linear-gradient(-45deg, transparent 75%, #111 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            touch-action: none; 
+            background: #000;
+            background-image:
+                linear-gradient(45deg, #0a0a0a 25%, transparent 25%),
+                linear-gradient(-45deg, #0a0a0a 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #0a0a0a 75%),
+                linear-gradient(-45deg, transparent 75%, #0a0a0a 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            touch-action: none;
         }
 
-        /* Modal Overlay for Saving */
+        /* ── Header ── */
+        header {
+            background: linear-gradient(180deg, rgba(0,0,0,0.85) 80%, transparent);
+            border-bottom: 1px solid rgba(0,255,0,0.2) !important;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ── Pulse animation on header icon ── */
+        @keyframes portal-pulse {
+            0%, 100% { filter: drop-shadow(0 0 4px #00ff00); opacity: 1; }
+            50%       { filter: drop-shadow(0 0 14px #00ff00); opacity: 0.7; }
+        }
+        .portal-icon { animation: portal-pulse 2.5s ease-in-out infinite; }
+
+        /* ── Title glow ── */
+        @keyframes title-flicker {
+            0%,100%  { text-shadow: 0 0 8px #00ff00, 0 0 20px rgba(0,255,0,0.4); }
+            92%      { text-shadow: 0 0 8px #00ff00, 0 0 20px rgba(0,255,0,0.4); }
+            93%      { text-shadow: none; }
+            94%      { text-shadow: 0 0 8px #00ff00, 0 0 20px rgba(0,255,0,0.4); }
+        }
+        .title-glow { animation: title-flicker 6s ease-in-out infinite; }
+
+        /* ── Footer ── */
+        #footer {
+            border-top: 1px solid rgba(0,255,0,0.15);
+            background: linear-gradient(0deg, #050505 80%, transparent);
+        }
+
+        /* ── Modal ── */
         #saveModal {
-            backdrop-filter: blur(5px);
-            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.9);
+        }
+        #saveModal > div {
+            border: 1px solid rgba(0,255,0,0.4);
+            box-shadow: 0 0 40px rgba(0,255,0,0.15), inset 0 1px 0 rgba(0,255,0,0.1);
+        }
+
+        /* ── Scanline overlay ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.08) 2px,
+                rgba(0,0,0,0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4 md:p-6 pb-20 md:pb-6">
 
+    <!-- Animated energy background -->
+    <canvas id="bg-canvas"></canvas>
+
     <!-- Header -->
-    <header class="flex justify-between items-center mb-6 border-b border-green-900 pb-4 sticky top-0 bg-[#050505] z-30 pt-2">
+    <header class="flex justify-between items-center mb-6 border-b border-green-900 pb-4 sticky top-0 z-30 pt-2">
         <div class="flex items-center gap-3">
-            <i class="fa-solid fa-radiation text-2xl animate-pulse text-green-500"></i>
+            <i class="fa-solid fa-radiation text-2xl text-green-500 portal-icon"></i>
             <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-widest leading-none">PORTAL_GEN</h1>
-                <span class="text-[10px] text-green-600 tracking-widest">MOBILE OPTIMIZED v3.4</span>
+                <h1 class="text-xl md:text-2xl font-bold tracking-widest leading-none title-glow">DOUBLE PORTAL GENERATOR</h1>
+                <span class="text-[10px] text-green-600 tracking-widest">PERSONAL EDITION · v3.4 · MOBILE OPTIMIZED</span>
             </div>
         </div>
-        <div class="text-[10px] text-green-700 hidden sm:block border border-green-900 px-2 py-1">
+        <div class="text-[10px] text-green-500 hidden sm:flex items-center gap-2 border border-green-900 px-3 py-1.5"
+             style="box-shadow: 0 0 8px rgba(0,255,0,0.1);">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
             SYS.STATUS: ONLINE
         </div>
     </header>
@@ -508,7 +604,9 @@
                     if (initialPinchDist) {
                         const scale = currentDist / initialPinchDist;
                         let newZoom = initialZoom * scale;
-                        newZoom = Math.min(Math.max(newZoom, 0.5), 3.0);
+                        const pinchMin = parseFloat(inputs.zoom.min) / 100;
+                        const pinchMax = parseFloat(inputs.zoom.max) / 100;
+                        newZoom = Math.min(Math.max(newZoom, pinchMin), pinchMax);
                         state.settings.zoom = newZoom;
                         inputs.zoom.value = Math.round(newZoom * 100);
                         labels.zoom.innerText = Math.round(newZoom * 100) + '%';
@@ -561,6 +659,20 @@
                     state.image = img;
                     state.panX = 0;
                     state.panY = 0;
+
+                    // Recalculate zoom slider range based on image size vs canvas (1024px base)
+                    // baseScale = how much the image is scaled by default to fill the canvas
+                    const baseScale = Math.max(1024 / img.width, 1024 / img.height);
+                    // Min: allow image to shrink to 20% of ring — handles 4K+ images
+                    const dynMin = Math.max(5, Math.round((0.20 / baseScale) * 100));
+                    // Max: always allow zooming in to 4x base scale
+                    const dynMax = Math.max(300, Math.round((4 / baseScale) * 100));
+                    inputs.zoom.min = dynMin;
+                    inputs.zoom.max = dynMax;
+                    inputs.zoom.value = 100;
+                    state.settings.zoom = 1;
+                    labels.zoom.innerText = '100%';
+
                     draw();
                 };
                 img.src = event.target.result;
@@ -579,6 +691,16 @@
             // Scale margins/radius
             const margin = 80 * k;
             const maxRadius = (width / 2) - margin;
+
+            // Clip everything to a circle — pixels outside stay transparent in PNG export
+            const sWidth = state.settings.width * k;
+            const clipRadius = state.settings.style === 'double'
+                ? maxRadius + sWidth + (10 * k)
+                : maxRadius + sWidth + (6 * k);
+            context.save();
+            context.beginPath();
+            context.arc(cx, cy, clipRadius, 0, Math.PI * 2);
+            context.clip();
 
             // 1. Draw Image
             if (state.image) {
@@ -606,6 +728,9 @@
 
             // 2. Draw Rings (Pass scale K)
             drawRings(context, cx, cy, maxRadius, k);
+
+            // End clip region
+            context.restore();
         }
 
         // Main Draw (Screen Canvas)
@@ -723,6 +848,208 @@
 
         // Start
         init();
+    </script>
+
+    <!-- Footer -->
+    <footer id="footer" class="mt-6 py-3 text-center text-[10px] tracking-widest text-green-800">
+        <span class="text-green-600">POWERED BY</span>
+        <span class="text-green-400 mx-1" style="text-shadow: 0 0 8px rgba(0,255,0,0.5);">✦ XMEME ✦</span>
+        <span class="text-green-800 mx-2">|</span>
+        <span class="text-green-700">XRPL PROTOCOL</span>
+        <span class="text-green-800 mx-2">|</span>
+        <span class="text-green-700">TRUFI NETWORK</span>
+    </footer>
+
+    <script>
+    // ── PLASMA ENERGY BACKGROUND ──
+    (function() {
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+
+        function resize() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // ── Plasma orbs that drift and pulse ──
+        const NUM_ORBS = 7;
+        const orbs = Array.from({ length: NUM_ORBS }, (_, i) => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: (Math.random() - 0.5) * 0.6,
+            r: 60 + Math.random() * 120,
+            phase: Math.random() * Math.PI * 2,
+            speed: 0.008 + Math.random() * 0.012,
+        }));
+
+        // ── Electric arc nodes ──
+        const NUM_NODES = 30;
+        const nodes = Array.from({ length: NUM_NODES }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            pulse: Math.random() * Math.PI * 2,
+        }));
+
+        // ── Active lightning arcs ──
+        const arcs = [];
+        function spawnArc() {
+            const a = Math.floor(Math.random() * NUM_NODES);
+            let b = Math.floor(Math.random() * NUM_NODES);
+            while (b === a) b = Math.floor(Math.random() * NUM_NODES);
+            arcs.push({
+                a, b,
+                life: 1.0,
+                decay: 0.025 + Math.random() * 0.045,
+                bright: 0.7 + Math.random() * 0.3,
+            });
+        }
+        for (let i = 0; i < 6; i++) spawnArc();
+
+        // Draw a jagged lightning bolt between two points
+        function drawArc(x1, y1, x2, y2, alpha, width, segments) {
+            const pts = [[x1, y1]];
+            const dx = (x2 - x1) / segments;
+            const dy = (y2 - y1) / segments;
+            const len = Math.hypot(x2 - x1, y2 - y1);
+            const jit = Math.min(len * 0.22, 40);
+            for (let i = 1; i < segments; i++) {
+                pts.push([
+                    x1 + dx * i + (Math.random() - 0.5) * jit,
+                    y1 + dy * i + (Math.random() - 0.5) * jit,
+                ]);
+            }
+            pts.push([x2, y2]);
+
+            // Outer glow pass
+            bgCtx.beginPath();
+            bgCtx.moveTo(pts[0][0], pts[0][1]);
+            for (let i = 1; i < pts.length; i++) bgCtx.lineTo(pts[i][0], pts[i][1]);
+            bgCtx.strokeStyle = `rgba(0,255,0,${alpha * 0.25})`;
+            bgCtx.lineWidth = width * 4;
+            bgCtx.shadowColor = '#00ff00';
+            bgCtx.shadowBlur = 30;
+            bgCtx.stroke();
+
+            // Mid glow
+            bgCtx.beginPath();
+            bgCtx.moveTo(pts[0][0], pts[0][1]);
+            for (let i = 1; i < pts.length; i++) bgCtx.lineTo(pts[i][0], pts[i][1]);
+            bgCtx.strokeStyle = `rgba(0,255,0,${alpha * 0.55})`;
+            bgCtx.lineWidth = width * 1.8;
+            bgCtx.shadowBlur = 15;
+            bgCtx.stroke();
+
+            // Core bright white-green
+            bgCtx.beginPath();
+            bgCtx.moveTo(pts[0][0], pts[0][1]);
+            for (let i = 1; i < pts.length; i++) bgCtx.lineTo(pts[i][0], pts[i][1]);
+            bgCtx.strokeStyle = `rgba(180,255,180,${alpha * 0.9})`;
+            bgCtx.lineWidth = width * 0.5;
+            bgCtx.shadowColor = '#ffffff';
+            bgCtx.shadowBlur = 6;
+            bgCtx.stroke();
+            bgCtx.shadowBlur = 0;
+        }
+
+        let frame = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            frame++;
+
+            // Fade trail instead of full clear — gives plasma smear effect
+            bgCtx.fillStyle = 'rgba(0,0,0,0.18)';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            // ── Draw plasma orbs ──
+            orbs.forEach(o => {
+                o.x += o.vx; o.y += o.vy;
+                o.phase += o.speed;
+                if (o.x < -o.r) o.x = bgCanvas.width + o.r;
+                if (o.x > bgCanvas.width + o.r) o.x = -o.r;
+                if (o.y < -o.r) o.y = bgCanvas.height + o.r;
+                if (o.y > bgCanvas.height + o.r) o.y = -o.r;
+
+                const pulse = 0.5 + 0.5 * Math.sin(o.phase);
+                const r = o.r * (0.85 + 0.15 * pulse);
+
+                const grad = bgCtx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r);
+                grad.addColorStop(0,   `rgba(0,255,80,${0.18 * pulse + 0.06})`);
+                grad.addColorStop(0.3, `rgba(0,255,0,${0.10 * pulse + 0.03})`);
+                grad.addColorStop(0.7, `rgba(0,180,0,${0.04 * pulse})`);
+                grad.addColorStop(1,   'rgba(0,0,0,0)');
+
+                bgCtx.beginPath();
+                bgCtx.arc(o.x, o.y, r, 0, Math.PI * 2);
+                bgCtx.fillStyle = grad;
+                bgCtx.shadowColor = '#00ff00';
+                bgCtx.shadowBlur = 40;
+                bgCtx.fill();
+                bgCtx.shadowBlur = 0;
+            });
+
+            // ── Move nodes ──
+            nodes.forEach(n => {
+                n.x += n.vx; n.y += n.vy;
+                n.pulse += 0.04;
+                if (n.x < 0 || n.x > bgCanvas.width)  n.vx *= -1;
+                if (n.y < 0 || n.y > bgCanvas.height) n.vy *= -1;
+            });
+
+            // ── Web lines between close nodes ──
+            for (let i = 0; i < NUM_NODES; i++) {
+                for (let j = i + 1; j < NUM_NODES; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 180) {
+                        const a = (1 - dist / 180) * 0.3;
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(nodes[i].x, nodes[i].y);
+                        bgCtx.lineTo(nodes[j].x, nodes[j].y);
+                        bgCtx.strokeStyle = `rgba(0,255,0,${a})`;
+                        bgCtx.lineWidth = a * 1.5;
+                        bgCtx.shadowColor = '#00ff00';
+                        bgCtx.shadowBlur = 4;
+                        bgCtx.stroke();
+                        bgCtx.shadowBlur = 0;
+                    }
+                }
+            }
+
+            // ── Node dots ──
+            nodes.forEach(n => {
+                const g = 0.5 + 0.5 * Math.sin(n.pulse);
+                bgCtx.beginPath();
+                bgCtx.arc(n.x, n.y, 2 + g, 0, Math.PI * 2);
+                bgCtx.fillStyle = `rgba(0,255,0,${0.6 + 0.4 * g})`;
+                bgCtx.shadowColor = '#00ff00';
+                bgCtx.shadowBlur = 12;
+                bgCtx.fill();
+                bgCtx.shadowBlur = 0;
+            });
+
+            // ── Draw & decay lightning arcs ──
+            for (let i = arcs.length - 1; i >= 0; i--) {
+                const arc = arcs[i];
+                arc.life -= arc.decay;
+                if (arc.life <= 0) { arcs.splice(i, 1); continue; }
+                const na = nodes[arc.a], nb = nodes[arc.b];
+                const segs = 7 + Math.floor(Math.random() * 5);
+                drawArc(na.x, na.y, nb.x, nb.y, arc.life * arc.bright, 2, segs);
+            }
+
+            // Spawn new arcs frequently
+            if (frame % 18 === 0 && arcs.length < 10) spawnArc();
+            if (frame % 40 === 0 && arcs.length < 14) spawnArc();
+        }
+
+        animate();
+    })();
     </script>
 </body>
 </html>
