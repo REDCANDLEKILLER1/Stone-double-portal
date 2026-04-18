@@ -538,19 +538,24 @@
                 <div class="text-3xl font-bold tracking-wider mb-3">
                     <span class="stone-text" style="font-size:2rem;">STONE</span>
                 </div>
-                <!-- Terminal-style typewriter boot log -->
-                <div id="greeterTerminal"
-                     class="text-left font-mono text-[11px] leading-relaxed bg-black/60 border border-green-900/60 rounded p-3"
-                     style="min-height: 92px; color: #a8ffa8; text-shadow: 0 0 3px rgba(0,255,0,0.3); white-space: pre-wrap; word-break: break-word;"></div>
-                <!-- XRPMAN signature -->
-                <div class="mt-4 pt-3 border-t border-green-900/50 flex items-center justify-center gap-2">
-                    <div class="w-6 h-6 rounded-full border border-green-500 flex items-center justify-center"
-                         style="background: radial-gradient(circle, rgba(0,80,0,0.8), rgba(0,10,0,0.9)); box-shadow: 0 0 6px rgba(0,255,0,0.4);">
-                        <i class="fa-solid fa-user-astronaut text-green-300 text-[9px]"></i>
+                <!-- Dramatic xrpman transmission — two lines type out -->
+                <div class="flex items-center gap-3 bg-black/60 border border-green-500/40 rounded p-3 mt-3" style="box-shadow: 0 0 18px rgba(0,255,0,0.15) inset;">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0 w-12 h-12 rounded-full border-2 flex items-center justify-center relative"
+                         style="border-color: #00ff00; background: radial-gradient(circle, rgba(0,120,0,0.8) 0%, rgba(0,20,0,0.95) 100%); box-shadow: 0 0 16px rgba(0,255,0,0.5);">
+                        <i class="fa-solid fa-user-astronaut text-lg" style="color: #00ff00; text-shadow: 0 0 8px #00ff00;"></i>
+                        <div class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse" style="background: #00ff00; box-shadow: 0 0 6px #00ff00;"></div>
                     </div>
-                    <div class="text-[10px] text-green-500">
-                        <span style="color:#00ff00;">xrp</span><span style="color:#ffcc44;">man</span>
-                        <span class="text-green-700 ml-1">· your assistant is online</span>
+                    <div class="flex-1 min-w-0 text-left">
+                        <div class="font-bold tracking-widest leading-none mb-1"
+                             style="font-size: 13px; color: #00ff00; text-shadow: 0 0 8px #00ff00; letter-spacing: 2px;">XRPMAN</div>
+                        <div class="flex items-start">
+                            <div id="greeterXrpmanText"
+                                 class="font-mono leading-snug"
+                                 style="font-size: 12px; color: #a8ffa8; text-shadow: 0 0 3px rgba(0,255,0,0.4); min-height: 32px; white-space: pre-wrap; word-break: break-word;"></div>
+                            <span class="inline-block ml-0.5 flex-shrink-0"
+                                  style="width: 7px; height: 13px; background: #00ff00; box-shadow: 0 0 6px #00ff00; animation: cursor-blink 0.8s step-end infinite; margin-top: 1px;"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2714,54 +2719,31 @@
             else                         greeting = 'WELCOME BACK, COMMANDER';
             gh.innerText = greeting;
         }
-        // Terminal typewriter — types out the boot log line-by-line with a blinking cursor.
-        // Uses textContent + slice to preserve spaces (innerText collapses whitespace).
-        const term = document.getElementById('greeterTerminal');
-        if (term) {
-            const lines = [
-                '> Portal systems are online.',
-                '> Energy signature: #00FF00 · NOMINAL',
-                '> XM∑M∑ network: CONNECTED',
-                '> XRPMAN is waiting for you...'
+        // Dramatic xrpman intro on the splash screen — two lines type out in sequence.
+        // This is self-contained on the splash, so nothing interferes with the main strip.
+        const splashText = document.getElementById('greeterXrpmanText');
+        if (splashText) {
+            const linesToType = [
+                'Look what making good choices got you!',
+                "What's it feel like being best friends with a superhero?"
             ];
-            const speed = 22; // ms per character — slightly faster than main strip
-            let lineIdx = 0;
-            term.textContent = '';
-            // Append a blinking cursor at the end
-            const cursorSpan = document.createElement('span');
-            cursorSpan.style.cssText = 'display:inline-block; width:7px; height:12px; background:#00ff00; box-shadow:0 0 6px #00ff00; margin-left:2px; animation: cursor-blink 0.8s step-end infinite; vertical-align: text-bottom;';
-            term.appendChild(cursorSpan);
-
-            function typeLine(line, onDone) {
+            const speed = 28;
+            function typeOne(text, onDone) {
+                splashText.textContent = '';
                 let i = 0;
-                const prefix = term.childNodes[0] && term.childNodes[0].nodeType === 3 ? term.childNodes[0].textContent : '';
-                const interval = setInterval(() => {
-                    if (i >= line.length) {
-                        clearInterval(interval);
-                        // Add newline and proceed
-                        const newPrefix = prefix + line + '\n';
-                        if (term.childNodes[0] && term.childNodes[0].nodeType === 3) {
-                            term.childNodes[0].textContent = newPrefix;
-                        } else {
-                            term.insertBefore(document.createTextNode(newPrefix), cursorSpan);
-                        }
-                        setTimeout(onDone, 180);
+                const int = setInterval(() => {
+                    if (i >= text.length) {
+                        clearInterval(int);
+                        onDone && setTimeout(onDone, 1800);
                         return;
                     }
                     i++;
-                    const partial = prefix + line.slice(0, i);
-                    if (term.childNodes[0] && term.childNodes[0].nodeType === 3) {
-                        term.childNodes[0].textContent = partial;
-                    } else {
-                        term.insertBefore(document.createTextNode(partial), cursorSpan);
-                    }
+                    splashText.textContent = text.slice(0, i);
                 }, speed);
             }
-            function runTerminal() {
-                if (lineIdx >= lines.length) return;
-                typeLine(lines[lineIdx], () => { lineIdx++; runTerminal(); });
-            }
-            setTimeout(runTerminal, 300);
+            setTimeout(() => {
+                typeOne(linesToType[0], () => typeOne(linesToType[1]));
+            }, 400);
         }
     })();
     document.getElementById('greeterClose').addEventListener('click', () => {
@@ -2959,49 +2941,21 @@
         showXrpmanLine(msg);
     }
 
-    // Flag: has the user interacted with xrpman (via button click or reaction)?
-    // If so, the boot sequence should stop gracefully and let normal flow take over.
-    let _xrpmanBootInterrupted = false;
-
     function startXrpmanAssistant() {
         _xrpmanPool = shuffleArray(buildXrpmanPool());
         _xrpmanIndex = 0;
-        _xrpmanBootInterrupted = false;
 
-        // Helper: wait until current typewriter finishes before resolving.
-        // Also resolves early if the boot gets interrupted by a user reaction.
-        function waitForTypingDone() {
-            return new Promise(resolve => {
-                const check = setInterval(() => {
-                    if (!_xrpmanTypeTimer || _xrpmanBootInterrupted) {
-                        clearInterval(check);
-                        resolve();
-                    }
-                }, 100);
-            });
-        }
+        // Opening message on the main strip = time-of-day greeting.
+        // Simple, direct, no async chain, nothing to interrupt.
+        showXrpmanLine(getGreetingForTimeOfDay());
 
-        // Dramatic two-line boot sequence. Checks interruption flag between steps
-        // so a user tap (which fires a reaction) cancels the rest of the script and
-        // hands control to the normal auto-rotate + reaction system.
-        (async () => {
-            showXrpmanLine('Look what making good choices got you!');
-            await waitForTypingDone();
-            if (_xrpmanBootInterrupted) { ensureRotationRunning(); return; }
-            await new Promise(r => setTimeout(r, 2200));
-            if (_xrpmanBootInterrupted) { ensureRotationRunning(); return; }
-            showXrpmanLine("What's it feel like being best friends with a superhero?");
-            await waitForTypingDone();
-            if (_xrpmanBootInterrupted) { ensureRotationRunning(); return; }
-            await new Promise(r => setTimeout(r, 1500));
-            ensureRotationRunning();
-        })();
+        // Start the 10s auto-rotation immediately.
+        ensureRotationRunning();
 
-        // Wire the "next" button to skip to next message AND mark boot as interrupted.
+        // Wire the "next" button to skip to next message.
         const nextBtn = document.getElementById('xrpmanNext');
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
-                _xrpmanBootInterrupted = true;
                 nextXrpmanMessage();
                 ensureRotationRunning();
             });
@@ -3064,15 +3018,17 @@
         'zoom':      ['Nice framing, Commander.', 'Zoom dialed in.', 'Looking good at that size.'],
     };
     window._xrpmanReact = function(key) {
-        const pool = XRPMAN_REACTIONS[key];
-        if (!pool || !pool.length) return;
-        // Any user-triggered reaction interrupts the boot sequence if it's still running.
-        // This prevents the second boot line from stepping on the reaction.
-        _xrpmanBootInterrupted = true;
-        const msg = pool[Math.floor(Math.random() * pool.length)];
-        showXrpmanLine(msg);
-        // Reset auto-rotate timer so the reaction sits on screen a full 10s
-        ensureRotationRunning();
+        try {
+            const pool = XRPMAN_REACTIONS[key];
+            if (!pool || !pool.length) return;
+            const msg = pool[Math.floor(Math.random() * pool.length)];
+            showXrpmanLine(msg);
+            // Reset auto-rotate so the reaction sits on screen a full 10s
+            if (_xrpmanTimer) clearInterval(_xrpmanTimer);
+            _xrpmanTimer = setInterval(nextXrpmanMessage, 10000);
+        } catch (err) {
+            if (window._sysLog) window._sysLog('REACT ERROR: ' + err.message, 'error');
+        }
     };
 
     // ── Toast System ──
