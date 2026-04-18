@@ -350,6 +350,18 @@
                 0%, 50%  { opacity: 1; }
                 51%,100% { opacity: 0; }
             }
+            @keyframes music-flash {
+                0%,100% {
+                    box-shadow: 0 0 6px rgba(0,255,0,0.4), 0 0 10px rgba(0,255,0,0.2);
+                    color: #00ff00;
+                    transform: scale(1);
+                }
+                50% {
+                    box-shadow: 0 0 14px rgba(0,255,0,1), 0 0 24px rgba(0,255,0,0.6), 0 0 6px #ffcc44;
+                    color: #ffffff;
+                    transform: scale(1.15);
+                }
+            }
             .tab-btn {
                 flex: 1;
                 padding: 10px 2px 8px;
@@ -598,6 +610,14 @@
          style="padding: 10px 12px; background: linear-gradient(135deg, rgba(0,20,0,0.95) 0%, rgba(0,40,10,0.85) 50%, rgba(0,20,0,0.95) 100%); border-bottom: 1px solid rgba(0,255,0,0.4); box-shadow: 0 2px 18px rgba(0,255,0,0.15), inset 0 -1px 0 rgba(0,255,0,0.3);">
         <!-- Animated scan-line glow effect -->
         <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #00ff00, transparent); background-size: 200% 100%; animation: tab-shimmer 3s linear infinite; pointer-events: none;"></div>
+
+        <!-- Flashing music note button — top-right corner of xrpman strip -->
+        <button id="musicNoteBtn"
+                class="absolute rounded-full flex items-center justify-center transition-all hover:scale-110"
+                style="top: 3px; right: 3px; width: 22px; height: 22px; border: 1px solid #00ff00; background: radial-gradient(circle, rgba(0,80,0,0.9), rgba(0,20,0,0.95)); color: #00ff00; box-shadow: 0 0 8px rgba(0,255,0,0.6); animation: music-flash 1.2s ease-in-out infinite; z-index: 20; touch-action: manipulation;"
+                title="Play music">
+            <i class="fa-solid fa-music text-[10px]"></i>
+        </button>
         <div class="flex items-center gap-3">
             <!-- Avatar — bigger, brighter, pulsing ring -->
             <div id="xrpmanAvatar"
@@ -631,6 +651,41 @@
                     style="touch-action:manipulation; width: 32px; height: 32px; border-color: rgba(0,255,0,0.4); color: #00ff00; background: rgba(0,40,0,0.5); box-shadow: 0 0 8px rgba(0,255,0,0.2);">
                 <i class="fa-solid fa-forward-step text-sm"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- Floating Music Player Bar — hidden until music note is tapped -->
+    <div id="musicPlayer" class="lg:hidden hidden fixed left-2 right-2 z-[5800] rounded-lg"
+         style="top: 4px; background: linear-gradient(135deg, rgba(0,20,0,0.98), rgba(0,40,10,0.95)); border: 1px solid #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.5), inset 0 0 10px rgba(0,255,0,0.15); padding: 8px 10px;">
+        <audio id="musicAudio" preload="metadata" src="https://ipfs.filebase.io/ipfs/QmerfUKxo316Pe1R3i6fKo4LLHJjMNt4n2teF4555wSzGB"></audio>
+        <div class="flex items-center gap-2">
+            <!-- Play/Pause button -->
+            <button id="musicPlayPause" class="flex-shrink-0 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                    style="width: 34px; height: 34px; border: 1px solid #00ff00; background: radial-gradient(circle, rgba(0,100,0,0.9), rgba(0,20,0,0.95)); color: #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5); touch-action:manipulation;"
+                    title="Play / Pause">
+                <i id="musicPlayIcon" class="fa-solid fa-play text-sm"></i>
+            </button>
+            <!-- Track label + time -->
+            <div class="flex-1 min-w-0">
+                <div class="font-bold leading-none mb-0.5" style="font-size: 11px; color: #00ff00; text-shadow: 0 0 6px #00ff00; letter-spacing: 1.5px;">XRPMAN · BGM</div>
+                <div id="musicTime" class="font-mono leading-none" style="font-size: 10px; color: #a8ffa8;">0:00 / 0:00</div>
+            </div>
+            <!-- Volume -->
+            <div class="flex items-center gap-1 flex-shrink-0">
+                <i class="fa-solid fa-volume-high text-[10px]" style="color: #00ff00;"></i>
+                <input id="musicVolume" type="range" min="0" max="100" value="70"
+                       style="width: 60px; accent-color: #00ff00;">
+            </div>
+            <!-- Close -->
+            <button id="musicClose" class="flex-shrink-0 rounded-full flex items-center justify-center hover:scale-110 transition-all"
+                    style="width: 26px; height: 26px; border: 1px solid rgba(0,255,0,0.4); background: rgba(0,30,0,0.6); color: #00ff00; touch-action:manipulation;"
+                    title="Close player">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+        <!-- Progress bar -->
+        <div class="mt-1.5 h-1 rounded-full overflow-hidden" style="background: rgba(0,80,0,0.4);">
+            <div id="musicProgress" class="h-full transition-all" style="width: 0%; background: linear-gradient(90deg, #00ff00, #ffcc44); box-shadow: 0 0 6px #00ff00;"></div>
         </div>
     </div>
 
@@ -1292,7 +1347,7 @@
                         </li>
                         <li class="flex gap-2 items-start">
                             <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
-                            <span>PULSE glow + transparent background = living portal vibe.</span>
+                            <span>PULSE and WAVE glow modes each give the rings a totally different look — try them all.</span>
                         </li>
                         <li class="flex gap-2 items-start">
                             <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
@@ -1300,11 +1355,15 @@
                         </li>
                         <li class="flex gap-2 items-start">
                             <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
-                            <span><span style="color:#00ff00;">xrp</span><span style="color:#ffcc44;">man</span> (your assistant) rotates through 90+ messages. Tap the arrow to skip.</span>
+                            <span>Tap the flashing <i class="fa-solid fa-music" style="color:#00ff00;"></i> at the top for BGM. Volume slider + play/pause in the floating bar.</span>
                         </li>
                         <li class="flex gap-2 items-start">
                             <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
-                            <span>Re-open this guide anytime with the <i class="fa-solid fa-circle-question"></i> in the top-right corner.</span>
+                            <span><span style="color:#00ff00;">XRPMAN</span> reacts to every button you tap. Try the glow modes or ring +/-.</span>
+                        </li>
+                        <li class="flex gap-2 items-start">
+                            <i class="fa-solid fa-check mt-1.5 flex-shrink-0" style="color:#ffcc44;"></i>
+                            <span>Re-open this guide anytime with the <i class="fa-solid fa-circle-question"></i> in the top-LEFT corner.</span>
                         </li>
                     </ul>
                     <div class="mt-6 pt-4 border-t border-green-900/50 flex items-center justify-center gap-2 text-sm text-green-600">
@@ -1327,12 +1386,12 @@
         </div>
     </div>
 
-    <!-- Floating help button — sits in top-right corner of the preview area -->
+    <!-- Floating help button — top-LEFT so it doesn't clash with music note (top-right) -->
     <button id="helpBtn"
             class="fixed z-[5500] flex items-center justify-center rounded-full border border-green-500 hover:scale-110 transition-transform"
-            style="top: 10px; right: 10px; width: 32px; height: 32px; background: radial-gradient(circle, rgba(0,60,0,0.9), rgba(0,10,0,0.95)); box-shadow: 0 0 10px rgba(0,255,0,0.4); color: #00ff00; touch-action:manipulation;"
+            style="top: 3px; left: 3px; width: 22px; height: 22px; background: radial-gradient(circle, rgba(0,60,0,0.9), rgba(0,10,0,0.95)); box-shadow: 0 0 8px rgba(0,255,0,0.4); color: #00ff00; touch-action:manipulation;"
             title="User's Guide">
-        <i class="fa-solid fa-question text-xs"></i>
+        <i class="fa-solid fa-question text-[10px]"></i>
     </button>
 
     <script>
@@ -1527,7 +1586,7 @@
             });
             // First-visit auto-open — localStorage flag so it only shows once
             try {
-                const SEEN_KEY = 'xmeme_portal_guide_seen_v1';
+                const SEEN_KEY = 'xmeme_portal_guide_seen_v2';
                 if (!localStorage.getItem(SEEN_KEY)) {
                     // Wait until greeter closes so we don't stack two modals
                     setTimeout(() => {
@@ -3057,6 +3116,101 @@
             if (window._sysLog) window._sysLog('REACT ERROR: ' + err.message, 'error');
         }
     };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //   MUSIC PLAYER — tap the music note button to reveal the floating player
+    // ═══════════════════════════════════════════════════════════════════════
+    (function initMusicPlayer() {
+        const audio    = document.getElementById('musicAudio');
+        const player   = document.getElementById('musicPlayer');
+        const noteBtn  = document.getElementById('musicNoteBtn');
+        const playBtn  = document.getElementById('musicPlayPause');
+        const playIcon = document.getElementById('musicPlayIcon');
+        const closeBtn = document.getElementById('musicClose');
+        const volume   = document.getElementById('musicVolume');
+        const timeEl   = document.getElementById('musicTime');
+        const progress = document.getElementById('musicProgress');
+        if (!audio || !player || !noteBtn) return;
+
+        // Format seconds -> M:SS
+        function fmt(s) {
+            if (!isFinite(s)) return '0:00';
+            s = Math.floor(s);
+            const m = Math.floor(s / 60);
+            const ss = String(s % 60).padStart(2, '0');
+            return m + ':' + ss;
+        }
+
+        // Initial volume (70%)
+        audio.volume = 0.7;
+        // Faster playback as requested
+        audio.playbackRate = 1.0;
+
+        // Tapping the music note toggles the player visibility AND auto-plays
+        noteBtn.addEventListener('click', async () => {
+            const isHidden = player.classList.contains('hidden');
+            if (isHidden) {
+                player.classList.remove('hidden');
+                // Kill the flash animation now that Stone has seen it
+                noteBtn.style.animation = 'none';
+                noteBtn.style.boxShadow = '0 0 8px rgba(0,255,0,0.4)';
+                try {
+                    await audio.play();
+                    playIcon.className = 'fa-solid fa-pause text-sm';
+                } catch (err) {
+                    if (window._sysLog) window._sysLog('MUSIC: ' + err.message, 'warn');
+                }
+            } else {
+                player.classList.add('hidden');
+            }
+        });
+
+        // Play / Pause toggle
+        playBtn.addEventListener('click', async () => {
+            if (audio.paused) {
+                try {
+                    await audio.play();
+                    playIcon.className = 'fa-solid fa-pause text-sm';
+                } catch (err) {
+                    if (window._sysLog) window._sysLog('MUSIC: ' + err.message, 'warn');
+                }
+            } else {
+                audio.pause();
+                playIcon.className = 'fa-solid fa-play text-sm';
+            }
+        });
+
+        // Close = hide player, pause audio, keep the note button accessible
+        closeBtn.addEventListener('click', () => {
+            audio.pause();
+            playIcon.className = 'fa-solid fa-play text-sm';
+            player.classList.add('hidden');
+        });
+
+        // Volume slider
+        volume.addEventListener('input', e => {
+            audio.volume = parseInt(e.target.value) / 100;
+        });
+
+        // Time + progress update
+        audio.addEventListener('timeupdate', () => {
+            timeEl.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+            if (audio.duration) {
+                progress.style.width = (audio.currentTime / audio.duration * 100) + '%';
+            }
+        });
+
+        // Reset icon when track ends
+        audio.addEventListener('ended', () => {
+            playIcon.className = 'fa-solid fa-play text-sm';
+            progress.style.width = '0%';
+        });
+
+        // Handle load errors silently (log to sys console)
+        audio.addEventListener('error', () => {
+            if (window._sysLog) window._sysLog('MUSIC: failed to load audio source', 'warn');
+        });
+    })();
 
     // ── Toast System ──
     // Large rotating pool of XM∑M∑/XRPL/portal/Stone messages.
