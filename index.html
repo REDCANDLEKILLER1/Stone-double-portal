@@ -559,8 +559,10 @@
                     </div>
                 </div>
             </div>
-            <button id="greeterClose" class="hud-btn w-full py-3 text-xs font-bold tracking-widest">
-                <i class="fa-solid fa-arrow-right mr-2"></i> ENTER THE PORTAL
+            <button id="greeterClose" class="hud-btn w-full py-3 text-xs font-bold tracking-widest transition-opacity"
+                    disabled
+                    style="opacity: 0.35; cursor: not-allowed; pointer-events: none;">
+                <i class="fa-solid fa-lock mr-2"></i> <span id="greeterBtnLabel">TRANSMISSION IN PROGRESS</span>
             </button>
         </div>
     </div>
@@ -2720,7 +2722,8 @@
             gh.innerText = greeting;
         }
         // Dramatic xrpman intro on the splash screen — two lines type out in sequence.
-        // This is self-contained on the splash, so nothing interferes with the main strip.
+        // ENTER THE PORTAL button stays locked until both lines finish so Stone hears
+        // the whole message before he can skip past it.
         const splashText = document.getElementById('greeterXrpmanText');
         if (splashText) {
             const linesToType = [
@@ -2728,22 +2731,46 @@
                 "What's it feel like being best friends with a superhero?"
             ];
             const speed = 28;
-            function typeOne(text, onDone) {
+            function typeOne(text, onDone, pauseAfter) {
                 splashText.textContent = '';
                 let i = 0;
                 const int = setInterval(() => {
                     if (i >= text.length) {
                         clearInterval(int);
-                        onDone && setTimeout(onDone, 1800);
+                        onDone && setTimeout(onDone, pauseAfter !== undefined ? pauseAfter : 1800);
                         return;
                     }
                     i++;
                     splashText.textContent = text.slice(0, i);
                 }, speed);
             }
+            // Unlock the ENTER button once line 2 finishes typing
+            function unlockEnterButton() {
+                const btn = document.getElementById('greeterClose');
+                const label = document.getElementById('greeterBtnLabel');
+                if (!btn) return;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.style.pointerEvents = 'auto';
+                btn.style.boxShadow = '0 0 18px rgba(0,255,0,0.4)';
+                // Swap icon from lock to arrow + change label
+                const icon = btn.querySelector('i');
+                if (icon) { icon.className = 'fa-solid fa-arrow-right mr-2'; }
+                if (label) label.textContent = 'ENTER THE PORTAL';
+            }
             setTimeout(() => {
-                typeOne(linesToType[0], () => typeOne(linesToType[1]));
+                typeOne(linesToType[0], () => typeOne(linesToType[1], unlockEnterButton, 600), 1500);
             }, 400);
+        } else {
+            // Fallback: if splash text element isn't found, don't lock the user out
+            const btn = document.getElementById('greeterClose');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.style.pointerEvents = 'auto';
+            }
         }
     })();
     document.getElementById('greeterClose').addEventListener('click', () => {
